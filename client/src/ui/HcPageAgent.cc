@@ -472,11 +472,9 @@ auto HcPageAgent::actionShowHidden(
     for ( const auto agent : agents ) {
         if ( agent->hidden() ) {
             if ( show_hidden ) {
-                // agent->unhide();
-                agent->setHidden( false );
+                agent->unhide();
             } else {
-                // agent->hide();
-                agent->setHidden( true );
+                agent->hide();
             }
         }
     }

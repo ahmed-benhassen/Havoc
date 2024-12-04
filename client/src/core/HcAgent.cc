@@ -353,64 +353,48 @@ auto HcAgent::hidden() -> bool
 auto HcAgent::setHidden(
     bool hide
 ) -> void {
+    _hidden = hide;
+
+    if ( hide ) {
+        this->hide();
+    } else {
+        this->unhide();
+    }
+}
+
+auto HcAgent::hide(
+    void
+) -> void {
     const auto show_hidden = Havoc->ui->PageAgent->show_hidden;
     const auto table       = Havoc->ui->PageAgent->AgentTable;
     const auto row         = ui.table.Uuid->row();
 
-    //
-    // TODO: fix this. this again doesnt work after the rewrite
-    if ( (_hidden != hide) ) {
-        _hidden = hide;
+    if ( !show_hidden ) {
+        table->hideRow( row );
+    }
 
-        if ( _hidden ) {
-            if ( !show_hidden ) {
-                table->hideRow( row );
-            }
-            for ( int i = 0; i < table->columnCount(); i++ ) {
-                table->item( row, i )->setForeground( Havoc->Theme.getComment() );
-            }
-        } else {
-            table->showRow( row );
-            for ( int i = 0; i < table->columnCount(); i++ ) {
-                table->item( row, i )->setForeground( Havoc->Theme.getForeground() );
-            }
+    if ( hidden() ) {
+        for ( int i = 0; i < table->columnCount(); i++ ) {
+            table->item( row, i )->setForeground( Havoc->Theme.getComment() );
         }
     }
 }
 
-// auto HcAgent::hide(
-//     void
-// ) -> void {
-//     const auto show_hidden = Havoc->ui->PageAgent->show_hidden;
-//     const auto table       = Havoc->ui->PageAgent->AgentTable;
-//     const auto row         = ui.table.Uuid->row();
-//
-//     if ( !show_hidden ) {
-//         table->hideRow( row );
-//     }
-//
-//     if ( hidden() ) {
-//         for ( int i = 0; i < table->columnCount(); i++ ) {
-//             table->item( row, i )->setForeground( Havoc->Theme.getComment() );
-//         }
-//     }
-// }
-//
-// auto HcAgent::unhide(
-//     void
-// ) -> void {
-//     const auto table = Havoc->ui->PageAgent->AgentTable;
-//     const auto row   = ui.table.Uuid->row();
-//
-//     table->showRow( row );
-//
-//     if ( !hidden() ) {
-//         for ( int i = 0; i < table->columnCount(); i++ ) {
-//             table->item( row, i )->setForeground( Havoc->Theme.getForeground() );
-//         }
-//     }
-// }
-//
+auto HcAgent::unhide(
+    void
+) -> void {
+    const auto table = Havoc->ui->PageAgent->AgentTable;
+    const auto row   = ui.table.Uuid->row();
+
+    table->showRow( row );
+
+    if ( !hidden() ) {
+        for ( int i = 0; i < table->columnCount(); i++ ) {
+            table->item( row, i )->setForeground( Havoc->Theme.getForeground() );
+        }
+    }
+}
+
 // auto HcAgent::disconnected(
 //     void
 // ) -> void {

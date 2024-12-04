@@ -133,8 +133,10 @@ public:
     //
     auto initialize() -> bool;
     auto post() -> void;
-
     auto console() const -> HcAgentConsole*;
+
+    auto hide() -> void;
+    auto unhide() -> void;
 };
 
 #endif //HAVOCCLIENT_HCAGENT_H
