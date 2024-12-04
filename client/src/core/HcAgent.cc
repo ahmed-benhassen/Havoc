@@ -1,4 +1,3 @@
-#include <csignal>
 #include <Havoc.h>
 #include <core/HcAgent.h>
 
@@ -9,7 +8,9 @@ std::map<
 
 HcAgent::HcAgent(
     const json& metadata
-) : data( metadata ) {}
+) : _data( metadata ), _console( nullptr ), _hidden( false ), ui() {
+    return;
+}
 
 auto HcAgent::initialize() -> bool {
     auto arch    = QString();
@@ -24,45 +25,45 @@ auto HcAgent::initialize() -> bool {
     auto note    = QString();
     auto meta    = json();
 
-    hidden = false;
+    _hidden = false;
 
-    if ( data.contains( "uuid" ) && data[ "uuid" ].is_string() ) {
-        uuid = data[ "uuid" ].get<std::string>();
+    if ( _data.contains( "uuid" ) && _data[ "uuid" ].is_string() ) {
+        _uuid = _data[ "uuid" ].get<std::string>();
     } else {
         spdlog::error( "[HcAgent::parse] agent does not contain valid uuid" );
         return false;
     }
 
-    if ( data.contains( "type" ) && data[ "type" ].is_string() ) {
-        type = data[ "type" ].get<std::string>();
+    if ( _data.contains( "type" ) && _data[ "type" ].is_string() ) {
+        _type = _data[ "type" ].get<std::string>();
     } else {
         spdlog::error( "[HcAgent::parse] agent does not contain valid type" );
         return false;
     }
 
-    if ( data.contains( "note" ) && data[ "note" ].is_string() ) {
-        note = QString( data[ "note" ].get<std::string>().c_str() );
+    if ( _data.contains( "note" ) && _data[ "note" ].is_string() ) {
+        note = QString( _data[ "note" ].get<std::string>().c_str() );
     } else {
         spdlog::debug( "[HcAgent::parse] agent does not contain any note" );
     }
 
-    if ( data.contains( "status" ) && data[ "status" ].is_string() ) {
-        status = data[ "status" ].get<std::string>();
+    if ( _data.contains( "status" ) && _data[ "status" ].is_string() ) {
+        _status = _data[ "status" ].get<std::string>();
     } else {
         spdlog::debug( "[HcAgent::parse] agent does not contain any status" );
     }
 
-    if ( data.contains( "meta" ) && data[ "meta" ].is_object() ) {
-        meta = data[ "meta" ].get<json>();
+    if ( _data.contains( "meta" ) && _data[ "meta" ].is_object() ) {
+        meta = _data[ "meta" ].get<json>();
     } else {
         spdlog::debug( "[HcAgent::parse] agent does not contain valid meta object" );
         return false;
     }
 
     if ( meta.contains( "parent" ) && meta[ "parent" ].is_string() ) {
-        parent = meta[ "parent" ].get<std::string>();
+        _parent = meta[ "parent" ].get<std::string>();
     } else {
-        spdlog::debug( "{} has no parent (is direct connection)", uuid );
+        spdlog::debug( "{} has no parent (is direct connection)", uuid() );
     }
 
     if ( meta.contains( "user" ) && meta[ "user" ].is_string() ) {
@@ -120,13 +121,13 @@ auto HcAgent::initialize() -> bool {
     }
 
     if ( meta.contains( "last callback" ) && meta[ "last callback" ].is_string() ) {
-        last = meta[ "last callback" ].get<std::string>();
+        setLast( meta[ "last callback" ].get<std::string>() );
     } else {
         spdlog::debug( "[HcAgent::parse] agent does not contain valid meta last" );
     }
 
     ui.table = {
-        .Uuid        = new HcAgentTableItem( uuid.c_str(), this ),
+        .Uuid        = new HcAgentTableItem( uuid().c_str(), this ),
         .Internal    = new HcAgentTableItem( local, this ),
         .Username    = new HcAgentTableItem( user, this ),
         .Hostname    = new HcAgentTableItem( host, this ),
@@ -137,19 +138,19 @@ auto HcAgent::initialize() -> bool {
         .Arch        = new HcAgentTableItem( arch, this ),
         .System      = new HcAgentTableItem( system, this ),
         .Note        = new HcAgentTableItem( note, this, Qt::NoItemFlags, Qt::AlignVCenter ),
-        .Last        = new HcAgentTableItem( QString::fromStdString( last ), this ),
+        .Last        = new HcAgentTableItem( "", this ),
     };
 
-    console = new HcAgentConsole( this );
-    console->setBottomLabel( QString( "[User: %1] [Process: %2] [Pid: %3] [Tid: %4]" ).arg( user ).arg( path ).arg( pid ).arg( tid ) );
-    console->setInputLabel( ">>>" );
-    console->LabelHeader->setFixedHeight( 0 );
+    _console = new HcAgentConsole( this );
+    _console->setBottomLabel( QString( "[User: %1] [Process: %2] [Pid: %3] [Tid: %4]" ).arg( user ).arg( path ).arg( pid ).arg( tid ) );
+    _console->setInputLabel( ">>>" );
+    _console->LabelHeader->setFixedHeight( 0 );
 
     if ( ! HcAgentCompletionList->empty() ) {
-        for ( int i = 0; i < HcAgentCompletionList->at( type ).size(); i++ ) {
-            auto [command, description] = HcAgentCompletionList->at( type ).at( i );
+        for ( int i = 0; i < HcAgentCompletionList->at( _type ).size(); i++ ) {
+            auto [command, description] = HcAgentCompletionList->at( _type ).at( i );
 
-            console->addCompleteCommand( command, description );
+            _console->addCompleteCommand( command, description );
         }
     }
 
@@ -159,27 +160,27 @@ auto HcAgent::initialize() -> bool {
 auto HcAgent::post(
     void
 ) -> void {
-    if ( status == AgentStatus::disconnected ) {
-        disconnected();
-    } else if ( status == AgentStatus::unresponsive ) {
-        unresponsive();
-    } else if ( status == AgentStatus::healthy ) {
-        healthy();
+    if ( status() == AgentStatus::disconnected ) {
+        // disconnected();
+    } else if ( status() == AgentStatus::unresponsive ) {
+        // unresponsive();
+    } else if ( status() == AgentStatus::healthy ) {
+        // healthy();
     }
 
     //
     // if an interface has been registered then assign it to the agent
     //
-    interface = std::nullopt;
-    if ( const auto object = Havoc->AgentObject( type ); object.has_value() ) {
+    _interface = std::nullopt;
+    if ( const auto object = Havoc->AgentObject( _type ); object.has_value() ) {
         HcPythonAcquire();
 
         try {
-            interface = object.value()( uuid, type, data[ "meta" ].get<json>() );
+            _interface = object.value()( _uuid, _type, _data[ "meta" ].get<json>() );
         } catch ( py11::error_already_set &eas ) {
-            spdlog::error( "failed to invoke agent interface [uuid: {}] [type: {}]: \n{}", uuid, type, eas.what() );
+            spdlog::error( "failed to invoke agent interface [uuid: {}] [type: {}]: \n{}", uuid(), type(), eas.what() );
 
-            emit ui.signal.ConsoleWrite( QString::fromStdString( uuid ), eas.what() );
+            emit ui.signal.ConsoleWrite( QString::fromStdString( _uuid ), eas.what() );
         }
 
 
@@ -193,16 +194,16 @@ auto HcAgent::post(
             spdlog::debug( "init_type: {} ({})", init_type, init_type.empty() );
 
             if ( !init_type.empty() ) {
-                if ( init_type == type ) {
+                if ( init_type == type() ) {
                     try {
-                        callback( interface.value() );
+                        callback( _interface.value() );
                     } catch ( py11::error_already_set& e ) {
                         spdlog::error( "failed to execute initialization event callback:\n{}", e.what() );
                     };
                 };
             } else {
                 try {
-                    callback( interface.value() );
+                    callback( _interface.value() );
                 } catch ( py11::error_already_set& e ) {
                     spdlog::error( "failed to execute initialization event callback:\n{}", e.what() );
                 };
@@ -210,100 +211,246 @@ auto HcAgent::post(
         };
     }
 
-    if ( image.isNull() ) {
+    if ( _image.isNull() ) {
         //
         // if the python object agent interface has not
         // registered any kind of image or icon for the
         // agent session then we are going to set unknown
         //
-        emit ui.signal.RegisterIconName( QString::fromStdString( uuid ), "unknown" );
+        emit ui.signal.RegisterIconName( QString::fromStdString( _uuid ), "unknown" );
     }
 }
 
-auto HcAgent::remove() -> void {
-    spdlog::debug( "agent::remove {}", uuid );
+HcAgent::~HcAgent() = default;
 
-    auto [status, response] = Havoc->ApiSend( "/api/agent/remove", { { "uuid", uuid } } );
+auto HcAgent::uuid() -> std::string
+{
+    return _uuid;
+}
+
+auto HcAgent::type() -> std::string
+{
+    return _type;
+}
+
+auto HcAgent::parent() -> std::string
+{
+    return _parent;
+}
+
+auto HcAgent::setParent(
+    const std::string& parent
+) -> void {
+    _parent = parent;
+
+    //
+    // TODO: do some reprocessing of agent parent (relink in the graph etc.)
+    //
+}
+
+auto HcAgent::status() -> std::string
+{
+    return _status;
+}
+
+auto HcAgent::setStatus(
+    HcAgentStatus status
+) -> void {
+    auto edge_color   = Havoc->Theme.getComment();
+    auto status_color = QColor();
+    auto status_name  = QString();
+
+    //
+    // set the agent status
+    if ( status == AgentStatusHealthy ) {
+        _status    = AgentStatus::healthy;
+        edge_color = parent().empty() ? Havoc->Theme.getGreen() : Havoc->Theme.getPurple();
+    }
+    else if ( status == AgentStatusDisconnected ) {
+        status_name  = QString::fromStdString( _status = AgentStatus::disconnected );
+        status_color = Havoc->Theme.getRed();
+    }
+    else if ( status == AgentStatusUnresponsive ) {
+        status_name  = QString::fromStdString( _status = AgentStatus::unresponsive );
+        status_color = Havoc->Theme.getOrange();
+    }
+
+    //
+    // set the edge color and the status string & color
+    if ( ui.node->itemEdge() ) {
+        ui.node->itemEdge()->setColor( edge_color );
+        ui.node->itemEdge()->setStatus( status_name, status_color );
+    }
+}
+
+auto HcAgent::setLast(
+    const std::string& last
+) -> QDateTime {
+    return ( _last = QDateTime::fromString(
+        QString::fromStdString( last ),
+        "dd-MMM-yyyy HH:mm:ss t"
+    ) );
+}
+
+auto HcAgent::last() -> QDateTime
+{
+    return _last;
+}
+
+auto HcAgent::data() -> nlohmann::json
+{
+    return _data;
+}
+
+auto HcAgent::interface() -> std::optional<pybind11::object>
+{
+    return _interface;
+}
+
+auto HcAgent::image() -> QImage
+{
+    return _image;
+}
+
+auto HcAgent::setImage(
+    const QImage& image
+) -> void {
+    _image = image;
+}
+
+auto HcAgent::writeConsole(
+    const std::string& text
+) -> void {
+    //
+    // write to the agent console from any thread
+    emit ui.signal.ConsoleWrite(
+        QString::fromStdString( uuid() ),
+        QString::fromStdString( text )
+    );
+}
+
+auto HcAgent::remove() -> void {
+    spdlog::debug( "agent::remove {}", uuid() );
+
+    auto [status, response] = Havoc->ApiSend( "/api/agent/remove", { { "uuid", uuid() } } );
 
     if ( status != 200 ) {
         Helper::MessageBox(
             QMessageBox::Critical,
             "agent removal failure",
-            std::format( "failed to remove agent {}: {}", uuid, response )
+            std::format( "failed to remove agent {}: {}", uuid(), response )
         );
 
-        spdlog::error( "failed to remove agent {}: {}", uuid, response );
+        spdlog::error( "failed to remove agent {}: {}", uuid(), response );
     }
 }
 
-auto HcAgent::hide(
-    void
-) const -> void {
+auto HcAgent::hidden() -> bool
+{
+    return _hidden;
+}
+
+auto HcAgent::setHidden(
+    bool hide
+) -> void {
     const auto show_hidden = Havoc->ui->PageAgent->show_hidden;
     const auto table       = Havoc->ui->PageAgent->AgentTable;
     const auto row         = ui.table.Uuid->row();
 
-    if ( !show_hidden ) {
-        table->hideRow( row );
-    }
+    //
+    // TODO: fix this. this again doesnt work after the rewrite
+    if ( (_hidden != hide) ) {
+        _hidden = hide;
 
-    if ( hidden ) {
-        for ( int i = 0; i < table->columnCount(); i++ ) {
-            table->item( row, i )->setForeground( Havoc->Theme.getComment() );
+        if ( _hidden ) {
+            if ( !show_hidden ) {
+                table->hideRow( row );
+            }
+            for ( int i = 0; i < table->columnCount(); i++ ) {
+                table->item( row, i )->setForeground( Havoc->Theme.getComment() );
+            }
+        } else {
+            table->showRow( row );
+            for ( int i = 0; i < table->columnCount(); i++ ) {
+                table->item( row, i )->setForeground( Havoc->Theme.getForeground() );
+            }
         }
     }
 }
 
-auto HcAgent::unhide(
-    void
-) const -> void {
-    const auto table = Havoc->ui->PageAgent->AgentTable;
-    const auto row   = ui.table.Uuid->row();
+// auto HcAgent::hide(
+//     void
+// ) -> void {
+//     const auto show_hidden = Havoc->ui->PageAgent->show_hidden;
+//     const auto table       = Havoc->ui->PageAgent->AgentTable;
+//     const auto row         = ui.table.Uuid->row();
+//
+//     if ( !show_hidden ) {
+//         table->hideRow( row );
+//     }
+//
+//     if ( hidden() ) {
+//         for ( int i = 0; i < table->columnCount(); i++ ) {
+//             table->item( row, i )->setForeground( Havoc->Theme.getComment() );
+//         }
+//     }
+// }
+//
+// auto HcAgent::unhide(
+//     void
+// ) -> void {
+//     const auto table = Havoc->ui->PageAgent->AgentTable;
+//     const auto row   = ui.table.Uuid->row();
+//
+//     table->showRow( row );
+//
+//     if ( !hidden() ) {
+//         for ( int i = 0; i < table->columnCount(); i++ ) {
+//             table->item( row, i )->setForeground( Havoc->Theme.getForeground() );
+//         }
+//     }
+// }
+//
+// auto HcAgent::disconnected(
+//     void
+// ) -> void {
+//     spdlog::debug( "agent::disconnected {}", uuid() );
+//
+//     if ( ui.node->itemEdge() ) {
+//         ui.node->itemEdge()->setColor( Havoc->Theme.getComment() );
+//         ui.node->itemEdge()->setStatus(
+//             QString::fromStdString( AgentStatus::disconnected ),
+//             Havoc->Theme.getRed()
+//         );
+//     }
+// }
+//
+// auto HcAgent::unresponsive(
+//     void
+// ) -> void {
+//     spdlog::debug( "agent::unresponsive {}", uuid() );
+//
+//     if ( ui.node->itemEdge() ) {
+//         ui.node->itemEdge()->setColor( Havoc->Theme.getComment() );
+//         ui.node->itemEdge()->setStatus(
+//             QString::fromStdString( AgentStatus::unresponsive ),
+//             Havoc->Theme.getOrange()
+//         );
+//     }
+// }
+//
+// auto HcAgent::healthy(
+//     void
+// ) -> void {
+//     spdlog::debug( "agent::healthy {}", uuid() );
+//
+//     if ( ui.node->itemEdge() ) {
+//         ui.node->itemEdge()->setColor( parent().empty() ? Havoc->Theme.getGreen() : Havoc->Theme.getPurple() );
+//         ui.node->itemEdge()->setStatus( QString(), QColor() );
+//     }
+// }
 
-    table->showRow( row );
-
-    if ( !hidden ) {
-        for ( int i = 0; i < table->columnCount(); i++ ) {
-            table->item( row, i )->setForeground( Havoc->Theme.getForeground() );
-        }
-    }
-}
-
-auto HcAgent::disconnected(
-    void
-) -> void {
-    spdlog::debug( "agent::disconnected {}", uuid );
-
-    if ( ui.node->itemEdge() ) {
-        ui.node->itemEdge()->setColor( Havoc->Theme.getComment() );
-        ui.node->itemEdge()->setStatus(
-            QString::fromStdString( AgentStatus::disconnected ),
-            Havoc->Theme.getRed()
-        );
-    }
-}
-
-auto HcAgent::unresponsive(
-    void
-) -> void {
-    spdlog::debug( "agent::unresponsive {}", uuid );
-
-    if ( ui.node->itemEdge() ) {
-        ui.node->itemEdge()->setColor( Havoc->Theme.getComment() );
-        ui.node->itemEdge()->setStatus(
-            QString::fromStdString( AgentStatus::unresponsive ),
-            Havoc->Theme.getOrange()
-        );
-    }
-}
-
-auto HcAgent::healthy(
-    void
-) -> void {
-    spdlog::debug( "agent::healthy {}", uuid );
-
-    if ( ui.node->itemEdge() ) {
-        ui.node->itemEdge()->setColor( parent.empty() ? Havoc->Theme.getGreen() : Havoc->Theme.getPurple() );
-        ui.node->itemEdge()->setStatus( QString(), QColor() );
-    }
+auto HcAgent::console() const -> HcAgentConsole*
+{
+    return _console;
 }

@@ -63,6 +63,7 @@ add_subdirectory( extern/Qt-Advanced-Docking-System )
 
 set( HAVOC_INTERFACE
         interface/IHcApplication.h
+        interface/IHcAgent.h
 
         interface/IHcPlugin.h
         interface/IHcPluginAgentView.h

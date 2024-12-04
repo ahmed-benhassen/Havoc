@@ -52,13 +52,13 @@ auto HcSessionGraph::addAgent(
 ) -> HcSessionGraphItem* {
     const auto item = new HcSessionGraphItem( agent, this );
 
-    if ( agent->parent.empty() ) {
+    if ( agent->parent().empty() ) {
         item->setItemEdge( new HcSessionGraphEdge( server, item, Havoc->Theme.getGreen() ) );
         item->addParent( server );
 
         server->addPivot( item );
     } else {
-        if ( const auto agent_parent = Havoc->Agent( agent->parent ); agent_parent.has_value() ) {
+        if ( const auto agent_parent = Havoc->Agent( agent->parent() ); agent_parent.has_value() ) {
             const auto node = agent_parent.value()->ui.node;
 
             item->setItemEdge( new HcSessionGraphEdge( node, item, Havoc->Theme.getPurple() ) );
@@ -66,7 +66,7 @@ auto HcSessionGraph::addAgent(
 
             node->addPivot( item );
         } else {
-            spdlog::debug( "failed to add agent {}: parent has not been found or registered {}", agent->uuid, agent->parent );
+            spdlog::debug( "failed to add agent {}: parent has not been found or registered {}", agent->uuid(), agent->parent() );
         }
     }
 
@@ -80,9 +80,10 @@ auto HcSessionGraph::addAgent(
 }
 
 auto HcSessionGraph::removeAgent(
-    const HcAgent* agent
+    HcAgent* agent
 ) -> void {
-    spdlog::debug( "[HcSessionGraph::removeAgent] {}", agent->uuid );
+    spdlog::debug( "[HcSessionGraph::removeAgent] {}", agent->uuid() );
+
     //
     // remove the items from the graph
     //
@@ -459,7 +460,7 @@ auto HcSessionGraphScene::contextMenuEvent(
                 if ( const auto session = static_cast<HcSessionGraphItem*>( _session );
                      session->agent()
                 ) {
-                    agent_type = session->agent()->type;
+                    agent_type = session->agent()->type();
                     break;
                 }
             }
@@ -515,32 +516,33 @@ auto HcSessionGraphScene::contextMenuEvent(
             const auto session = dynamic_cast<HcSessionGraphItem*>( _session );
 
             if ( session->agent() ) {
-                spdlog::debug( "session uuid: {}", session->agent()->uuid );
+                spdlog::debug( "session uuid: {}", session->agent()->uuid() );
 
                 if ( action->text().compare( "Interact" ) == 0 ) {
-                    Havoc->ui->PageAgent->spawnAgentConsole( session->agent()->uuid );
+                    Havoc->ui->PageAgent->spawnAgentConsole( session->agent()->uuid() );
                 } else if ( action->text().compare( "Remove" ) == 0 ) {
                     session->agent()->remove();
                 } else if ( action->text().compare( "Hide" ) == 0 ) {
-                    session->agent()->hide();
+                    // session->agent()->hide();
+                    session->agent()->setHidden( true );
                 } else {
                     for ( const auto agent_action : actions ) {
                         if ( agent_action->name       == action->text().toStdString() &&
-                             agent_action->agent.type == session->agent()->type
+                             agent_action->agent.type == session->agent()->type()
                         ) {
-                            const auto agent = Havoc->Agent( session->agent()->uuid );
+                            const auto agent = Havoc->Agent( session->agent()->uuid() );
                             if ( agent.has_value() &&
-                                 agent.value()->interface.has_value()
+                                 agent.value()->interface().has_value()
                             ) {
                                 if ( agent_action->callback ) {
                                     reinterpret_cast<HcFnCallbackCtx<std::string>>( agent_action->callback )(
-                                        agent.value()->uuid
+                                        agent.value()->uuid()
                                     );
                                 } else {
                                     try {
                                         HcPythonAcquire();
 
-                                        agent_action->callback_py( agent.value()->interface.value() );
+                                        agent_action->callback_py( agent.value()->interface().value() );
                                     } catch ( py11::error_already_set& e ) {
                                         spdlog::error( "failed to execute action callback: {}", e.what() );
                                     }
@@ -602,7 +604,7 @@ HcSessionGraphItem::HcSessionGraphItem(
     rect = QRectF( -40, -50, 80, 80 );
 
     if ( agent ) {
-        info = new HcSessionGraphItemInfo( agent->uuid.c_str(), std::format(
+        info = new HcSessionGraphItemInfo( agent->uuid().c_str(), std::format(
             "{} @ {}\\{}",
             agent->ui.table.Username->text().toStdString(),
             agent->ui.table.ProcessName->text().toStdString(),
@@ -733,7 +735,7 @@ auto HcSessionGraphItem::paint(
             //
         }
 
-        painter->drawImage( rect, _agent->image );
+        painter->drawImage( rect, _agent->image() );
     }
 
     //

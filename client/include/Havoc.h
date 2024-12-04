@@ -68,8 +68,8 @@ public:
             std::string type;
         } listener;
 
-        std::string  name;
-        std::string  icon;
+        std::string name;
+        std::string icon;
 
         HcFnCallbackCtx<void*> callback;
         py11::object           callback_py;

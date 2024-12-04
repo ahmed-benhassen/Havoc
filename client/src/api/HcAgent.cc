@@ -41,8 +41,8 @@ auto HcAgentConsoleLabel(
         //
         // if we are going to append nothing then hide the label
         //
-        agent.value()->console->setBottomLabel( content.c_str() );
-        agent.value()->console->LabelBottom->setFixedHeight( content.empty() ? 0 : 20 );
+        agent.value()->console()->setBottomLabel( content.c_str() );
+        agent.value()->console()->LabelBottom->setFixedHeight( content.empty() ? 0 : 20 );
     }
 }
 
@@ -66,8 +66,8 @@ auto HcAgentConsoleHeader(
         //
         // if we are going to append nothing then hide the label
         //
-        agent.value()->console->setHeaderLabel( content.c_str() );
-        agent.value()->console->LabelHeader->setFixedHeight( content.empty() ? 0 : 20 );
+        agent.value()->console()->setHeaderLabel( content.c_str() );
+        agent.value()->console()->LabelHeader->setFixedHeight( content.empty() ? 0 : 20 );
     }
 }
 
@@ -117,11 +117,11 @@ auto HcAgentConsoleAddComplete(
     HcAgentCompletionList->at( agent ).push_back( std::pair( command, description ) );
 
     for ( const auto _agent : Havoc->Agents() ) {
-        if ( _agent->type == agent ) {
+        if ( _agent->type() == agent ) {
             //
             // we only have to add it once to the agent type
             //
-            _agent->console->addCompleteCommand( command, description );
+            _agent->console()->addCompleteCommand( command, description );
         }
     }
 }

@@ -401,9 +401,24 @@ auto HcStoreWidget::AddPlugin(
     //       from the external servers and repaint the UI
     //
 
-    auto pixmap  = QPixmap( 1, 1 );
-    auto painter = QPainter( &pixmap );
-    plugin->TextReadme->render( &painter );
+    try {
+        auto pixmap = QPixmap( plugin->TextReadme->size() );
+        pixmap.fill( Qt::transparent );
+
+        auto painter = QPainter( &pixmap );
+        if ( !painter.isActive() ) {
+            spdlog::warn( "painter could not be initialized!" );
+            return;
+        }
+
+        plugin->TextReadme->render( &painter );
+    } catch ( ... ) {
+        //
+        // NOTE: I don't really care about the exception.
+        //       just don't crash the entire application
+        //       because you failed to make my hacky fix run lol
+        //
+    }
 
     Havoc->ui->repaint();
 

@@ -9,6 +9,8 @@ struct HcAgent;
 #include <ui/HcPageAgent.h>
 #include <ui/HcSessionGraph.h>
 
+#include <IHcAgent.h>
+
 class HcAgentSignals final : public QObject {
     Q_OBJECT
 
@@ -50,19 +52,19 @@ public:
     );
 };
 
-struct HcAgent {
-    std::string uuid;
-    std::string type;
-    std::string parent;
-    std::string status;
-    std::string last;
-    json        data;
+class HcAgent : public IHcAgent {
+    std::string _uuid;
+    std::string _type;
+    std::string _parent;
+    std::string _status;
+    QDateTime   _last;
+    json        _data;
 
-    std::optional<py11::object> interface;
-    HcAgentConsole*             console;
-    bool                        hidden;
-    QImage                      image;
-
+    std::optional<py11::object> _interface;
+    HcAgentConsole*             _console;
+    bool                        _hidden;
+    QImage                      _image;
+public:
     struct {
         HcSessionGraphItem* node;
 
@@ -88,14 +90,51 @@ struct HcAgent {
         const json& metadata
     );
 
+    ~HcAgent();
+
+    auto uuid() -> std::string override;
+    auto type() -> std::string override;
+
+    auto parent() -> std::string override;
+    auto setParent(
+        const std::string& parent
+    ) -> void override;
+
+    auto status() -> std::string override;
+    auto setStatus(
+        HcAgentStatus status
+    ) -> void override;
+
+    auto setLast(
+        const std::string& last
+    ) -> QDateTime override;
+    auto last() -> QDateTime override;
+    auto data() -> nlohmann::json override;
+    auto interface() -> std::optional<pybind11::object> override;
+
+    auto hidden() -> bool override;
+    auto setHidden(
+        bool hidden
+    ) -> void override;
+
+    auto image() -> QImage override;
+    auto setImage(
+        const QImage& image
+    ) -> void override;
+
+    auto writeConsole(
+        const std::string& text
+    ) -> void override;
+
+    auto remove() -> void override;
+
+    //
+    // custom HcAgent methods
+    //
     auto initialize() -> bool;
     auto post() -> void;
-    auto remove() -> void;
-    auto hide() const -> void;
-    auto unhide() const -> void;
-    auto disconnected() -> void;
-    auto unresponsive() -> void;
-    auto healthy() -> void;
+
+    auto console() const -> HcAgentConsole*;
 };
 
 #endif //HAVOCCLIENT_HCAGENT_H

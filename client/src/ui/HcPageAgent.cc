@@ -225,19 +225,19 @@ auto HcPageAgent::addAgent(
 
     connect( &agent->ui.signal, &HcAgentSignals::ConsoleWrite, this, []( const QString& uuid, const QString& text ) {
         if ( const auto _agent = Havoc->Agent( uuid.toStdString() ); _agent.has_value() ) {
-            _agent.value()->console->appendConsole( HcConsole::formatString( text.toStdString() ).c_str() );
+            _agent.value()->console()->appendConsole( HcConsole::formatString( text.toStdString() ).c_str() );
         }
     } );
 
     connect( &agent->ui.signal, &HcAgentSignals::RegisterIcon, this, []( const QString& uuid, const QImage& icon ) {
         if ( const auto _agent = Havoc->Agent( uuid.toStdString() ); _agent.has_value() ) {
-            _agent.value()->image = icon;
+            _agent.value()->setImage( icon );
         }
     } );
 
     connect( &agent->ui.signal, &HcAgentSignals::RegisterIconName, this, []( const QString& uuid, const QString& name ) {
         if ( const auto _agent = Havoc->Agent( uuid.toStdString() ); _agent.has_value() ) {
-            _agent.value()->image = QImage( std::format( ":/graph/{}", name.toStdString() ).c_str() );
+            _agent.value()->setImage( QImage( std::format( ":/graph/{}", name.toStdString() ).c_str() ) );
         }
     } );
 
@@ -260,7 +260,7 @@ auto HcPageAgent::addAgent(
 
     agent->ui.node = AgentGraph->addAgent( agent );
 
-    if ( ! agent->parent.empty() ) {
+    if ( ! agent->parent().empty() ) {
         pivots++;
     }
 
@@ -321,7 +321,7 @@ auto HcPageAgent::handleAgentMenu(
             return;
         }
 
-        type = agent.value()->type;
+        type = agent.value()->type();
 
         for ( const auto action : agent_actions ) {
             if ( action->agent.type == type ) {
@@ -335,8 +335,8 @@ auto HcPageAgent::handleAgentMenu(
 
         menu.addSeparator();
         menu.addAction(
-            !agent.value()->hidden ? QIcon( ":/icons/16px-blind-white" ) : QIcon( ":/icons/16px-eye-white" ),
-            !agent.value()->hidden ? "Hide" : "Un-Hide"
+            !agent.value()->hidden() ? QIcon( ":/icons/16px-blind-white" ) : QIcon( ":/icons/16px-eye-white" ),
+            !agent.value()->hidden() ? "Hide" : "Un-Hide"
         );
         menu.addAction( QIcon( ":/icons/16px-remove" ), "Remove" );
     }
@@ -351,26 +351,28 @@ auto HcPageAgent::handleAgentMenu(
             } else if ( action->text().compare( "Remove" ) == 0 ) {
                 remove.push_back( Agent( uuid ).value() );
             } else if ( action->text().compare( "Hide" ) == 0 ) {
-                agent.value()->hidden = true;
-                agent.value()->hide();
+                // agent.value()->hidden = true;
+                // agent.value()->hide();
+                agent.value()->setHidden( true );
             } else if ( action->text().compare( "Un-Hide" ) == 0 ) {
-                agent.value()->hidden = false;
-                agent.value()->unhide();
+                // agent.value()->hidden = false;
+                // agent.value()->unhide();
+                agent.value()->setHidden( false );
             } else {
                 for ( const auto _action : agent_actions ) {
                     if ( _action->name       == action->text().toStdString() &&
                          _action->agent.type == type
                     ) {
-                        if ( agent.has_value() && agent.value()->interface.has_value() ) {
+                        if ( agent.has_value() && agent.value()->interface().has_value() ) {
                             if ( _action->callback ) {
                                 reinterpret_cast<HcFnCallbackCtx<std::string>>( _action->callback )(
-                                    agent.value()->uuid
+                                    agent.value()->uuid()
                                 );
                             } else {
                                 try {
                                     HcPythonAcquire();
 
-                                    _action->callback_py( agent.value()->interface.value() );
+                                    _action->callback_py( agent.value()->interface().value() );
                                 } catch ( py11::error_already_set& e ) {
                                     spdlog::error( "failed to execute action callback: {}", e.what() );
                                 }
@@ -407,8 +409,8 @@ auto HcPageAgent::spawnAgentConsole(
     const std::string& uuid
 ) -> void {
     for ( auto& agent : agents ) {
-        if ( agent->uuid == uuid ) {
-            const auto user  = agent->data[ "meta" ][ "user" ].get<std::string>();
+        if ( agent->uuid() == uuid ) {
+            const auto user  = agent->data()[ "meta" ][ "user" ].get<std::string>();
             const auto title = QString( "[%1] %2" ).arg( uuid.c_str() ).arg( user.c_str() );
 
             //
@@ -425,7 +427,7 @@ auto HcPageAgent::spawnAgentConsole(
             //
             // no tab with the title name found so lets just add a new one
             //
-            addTab( title, agent->console );
+            addTab( title, agent->console() );
 
             break;
         }
@@ -441,7 +443,7 @@ auto HcPageAgent::AgentConsole(
         //
         // now print the content
         //
-        agent.value()->console->appendConsole( HcConsole::formatString( format, output ).c_str() );
+        agent.value()->console()->appendConsole( HcConsole::formatString( format, output ).c_str() );
     } else {
         spdlog::debug( "[AgentConsole] agent not found: {}", uuid );
     }
@@ -451,7 +453,7 @@ auto HcPageAgent::Agent(
     const std::string &uuid
 ) -> std::optional<HcAgent*> {
     for ( auto agent : agents ) {
-        if ( agent->uuid == uuid ) {
+        if ( agent->uuid() == uuid ) {
             return agent;
         }
     }
@@ -468,11 +470,13 @@ auto HcPageAgent::actionShowHidden(
     show_hidden = !show_hidden;
 
     for ( const auto agent : agents ) {
-        if ( agent->hidden ) {
+        if ( agent->hidden() ) {
             if ( show_hidden ) {
-                agent->unhide();
+                // agent->unhide();
+                agent->setHidden( false );
             } else {
-                agent->hide();
+                // agent->hide();
+                agent->setHidden( true );
             }
         }
     }
@@ -515,12 +519,12 @@ auto HcPageAgent::itemChanged(
 
         auto note               = agent_item->text().toStdString();
         auto [status, response] = Havoc->ApiSend( "/api/agent/note", {
-            { "uuid", agent_item->agent->uuid },
+            { "uuid", agent_item->agent->uuid() },
             { "note", note }
         } );
 
         if ( status != 200 ) {
-            spdlog::error( "failed to set the agent {} note: ({}) {}", agent_item->agent->uuid, status, response );
+            spdlog::error( "failed to set the agent {} note: ({}) {}", agent_item->agent->uuid(), status, response );
         }
     }
 }
@@ -555,7 +559,7 @@ auto HcPageAgent::removeAgent(
     // the table ui widget entry
     //
     for ( int i = 0; i < AgentTable->rowCount(); i++ ) {
-        item_uuid = ( ( HcAgentTableItem* ) AgentTable->item( i, 0 ) )->agent->uuid;
+        item_uuid = static_cast<HcAgentTableItem*>( AgentTable->item( i, 0 ) )->agent->uuid();
 
         if ( item_uuid == uuid ) {
             spdlog::debug( "remove agent from table: {}", uuid );
@@ -569,7 +573,7 @@ auto HcPageAgent::removeAgent(
     // the table entry vector list
     //
     for ( int i = 0; i < agents.size(); i++ ) {
-        if ( agents[ i ]->uuid == item_uuid ) {
+        if ( agents[ i ]->uuid() == item_uuid ) {
             agent = agents[ i ];
 
             agents.erase( agents.begin() + i );
@@ -580,10 +584,10 @@ auto HcPageAgent::removeAgent(
     if ( agent ) {
         HcPythonAcquire();
 
-        is_pivot = ! agent->parent.empty();
+        is_pivot = ! agent->parent().empty();
 
         for ( const auto dock : DockManager->dockWidgetsMap() ) {
-            if ( dock->widget() == agent->console ) {
+            if ( dock->widget() == agent->console() ) {
                 DockManager->removeDockWidget( dock );
 
                 //
@@ -599,7 +603,7 @@ auto HcPageAgent::removeAgent(
 
         spdlog::debug( "agent delete objects" );
 
-        delete agent->console;
+        delete agent->console();
         delete agent;
     }
 
@@ -955,14 +959,14 @@ auto HcAgentConsole::inputEnter(
     auto future = QtConcurrent::run( []( HcAgent* agent, const std::string& input ) {
         HcPythonAcquire();
 
-        if ( agent->interface.has_value() ) {
+        if ( agent->interface().has_value() ) {
             try {
-                agent->interface.value().attr( "_input_dispatch" )( input );
+                agent->interface().value().attr( "_input_dispatch" )( input );
             } catch ( py11::error_already_set &eas ) {
-                emit agent->ui.signal.ConsoleWrite( agent->uuid.c_str(), eas.what() );
+                emit agent->ui.signal.ConsoleWrite( agent->uuid().c_str(), eas.what() );
             }
         } else {
-            emit agent->ui.signal.ConsoleWrite( agent->uuid.c_str(), "[!] No agent script handler registered for this type" );
+            emit agent->ui.signal.ConsoleWrite( agent->uuid().c_str(), "[!] No agent script handler registered for this type" );
         }
     }, Meta, input );
 }

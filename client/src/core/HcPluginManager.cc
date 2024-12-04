@@ -4,9 +4,7 @@
 class HcCoreApp : public IHcApplication {
 
 public:
-    ~HcCoreApp() override {
-
-    }
+    ~HcCoreApp() override = default;
 
     auto PageAgentAddTab(
         const std::string& name,
@@ -33,8 +31,8 @@ public:
     }
 
     auto RegisterAgentAction(
-        const std::string&           action_name,
-        const std::string&           action_icon,
+        const std::string&         action_name,
+        const std::string&         action_icon,
         HcFnCallbackCtx<std::string> action_func
     ) -> void override {
         auto action = new HcApplication::ActionObject;
@@ -48,9 +46,9 @@ public:
     }
 
     auto RegisterAgentAction(
-        const std::string&           action_name,
+        const std::string&         action_name,
         HcFnCallbackCtx<std::string> action_func,
-        bool                         multi_select
+        bool                       multi_select
     ) -> void override {
         //
         // TODO: implement
@@ -71,11 +69,31 @@ public:
 
         Havoc->AddAction( action );
     };
-};
 
-//
-//
-//
+    auto Agent(
+        const std::string& uuid
+    ) -> std::optional<IHcAgent *> override {
+        return Havoc->Agent( uuid );
+    }
+
+    auto PythonContextRun(
+        std::function<void()> Function
+    ) -> std::optional<std::runtime_error> override {
+        try {
+            auto gil = py11::gil_scoped_acquire();
+
+            Function();
+        } catch ( py11::error_already_set& e ) {
+            return std::runtime_error( e.what() ) ;
+        } catch ( std::exception& e ) {
+            return std::runtime_error( e.what() );
+        } catch ( ... ) {
+            return std::runtime_error( "unknown exception thrown" );
+        }
+
+        return std::nullopt;
+    }
+};
 
 HcPluginManager::HcPluginManager() : core_app( new HcCoreApp ) {}
 

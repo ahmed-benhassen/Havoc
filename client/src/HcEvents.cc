@@ -303,7 +303,7 @@ auto HcApplication::eventDispatch(
             // a python interface
             //
             auto agent = Havoc->ui->PageAgent->Agent( uuid );
-            if ( agent.has_value() && agent.value()->interface.has_value() ) {
+            if ( agent.has_value() && agent.value()->interface().has_value() ) {
                 pat = QByteArray::fromBase64( out.c_str() ).toStdString();
 
                 try {
@@ -315,7 +315,7 @@ auto HcApplication::eventDispatch(
                     //      return
                     //
                     callback.value()(
-                        agent.value()->interface.value(),
+                        agent.value()->interface().value(),
                         py11::bytes( pat.c_str(), pat.length() ),
                         **py11::dict( ctx )
                     );
@@ -324,13 +324,13 @@ auto HcApplication::eventDispatch(
                     // catch exception and print it to the agent
                     // console as it was running under its context
                     //
-                    emit agent.value()->ui.signal.ConsoleWrite( agent.value()->uuid.c_str(), eas.what() );
+                    emit agent.value()->ui.signal.ConsoleWrite( agent.value()->uuid().c_str(), eas.what() );
                 }
             } else {
                 spdlog::error(
                     "[agent.has_value(): {}] [agent.value()->interface.has_value(): {}]",
                     agent.has_value(),
-                    agent.has_value() && agent.value()->interface.has_value()
+                    agent.has_value() && agent.value()->interface().has_value()
                 );
             }
         } else {
@@ -385,7 +385,7 @@ auto HcApplication::eventDispatch(
         if ( auto _value = Agent( uuid ); _value.has_value() ) {
             auto agent = _value.value();
 
-            agent->last = time;
+            agent->setLast( time );
 
             //
             // update the pulsation inside the graph
@@ -432,15 +432,18 @@ auto HcApplication::eventDispatch(
         }
 
         if ( auto _value = Agent( uuid ); _value.has_value() ) {
-            auto agent = _value.value();
+            auto agent   = _value.value();
+            auto _status = HcAgentStatus();
 
             if ( status == AgentStatus::disconnected ) {
-                agent->disconnected();
+                _status = AgentStatusDisconnected;
             } else if ( status == AgentStatus::unresponsive ) {
-                agent->unresponsive();
+                _status = AgentStatusUnresponsive;
             } else if ( status == AgentStatus::healthy ) {
-                agent->healthy();
+                _status = AgentStatusHealthy;
             }
+
+            agent->setStatus( _status );
         }
     }
     else if ( type == Event::agent::remove )

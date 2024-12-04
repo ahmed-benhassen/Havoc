@@ -346,7 +346,8 @@ public:
         HcAgent* agent
     ) -> HcSessionGraphItem*;
 
-    auto removeAgent(const HcAgent* agent
+    auto removeAgent(
+        HcAgent* agent
     ) -> void;
 
     auto isServer(

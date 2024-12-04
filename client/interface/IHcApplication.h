@@ -4,6 +4,8 @@
 #include <QWidget>
 #include <string>
 
+#include <IHcAgent.h>
+
 template <typename T>
 using HcFnCallbackCtx = auto ( * ) ( const T& context ) -> void;
 using HcFnCallback    = auto ( * ) ( void ) -> void;
@@ -110,6 +112,36 @@ public:
         const std::string& action_icon,
         HcFnCallback       action_func
     ) -> void = 0;
+
+    //
+    // agent api
+    //
+
+    virtual auto Agent(
+        const std::string& uuid
+    ) -> std::optional<IHcAgent*> = 0;
+
+    //
+    // python api
+    //
+
+    /*!
+     * @brief
+     *  run function under the context of the gil
+     *
+     * @param Function
+     *  function to run that requires the
+     *  current thread context to hold the
+     *  python global interpreter lock
+     *
+     * @return
+     *  the specified function raises any kind
+     *  of python related or native exceptions
+     *  it will be returned as a std::exception
+     */
+    virtual auto PythonContextRun(
+        std::function<void()> Function
+    ) -> std::optional<std::runtime_error> = 0;
 };
 
 #endif //HCINTERFACE_IHCAPPLICATION_H
