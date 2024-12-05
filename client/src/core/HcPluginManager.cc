@@ -6,11 +6,22 @@ class HcCoreApp : public IHcApplication {
 public:
     ~HcCoreApp() override = default;
 
+    auto StyleSheet(
+        void
+    ) -> QString override {
+        return Havoc->StyleSheet();
+    }
+
     auto PageAgentAddTab(
         const std::string& name,
+        const QIcon&       icon,
         QWidget*           widget
     ) -> void override {
-        Havoc->ui->PageAgent->addTab( QString::fromStdString( name ), widget );
+        Havoc->ui->PageAgent->addTab(
+            QString::fromStdString( name ),
+            icon,
+            widget
+        );
     }
 
     auto RegisterAgentAction(
@@ -31,8 +42,8 @@ public:
     }
 
     auto RegisterAgentAction(
-        const std::string&         action_name,
-        const std::string&         action_icon,
+        const std::string&           action_name,
+        const std::string&           action_icon,
         HcFnCallbackCtx<std::string> action_func
     ) -> void override {
         auto action = new HcApplication::ActionObject;

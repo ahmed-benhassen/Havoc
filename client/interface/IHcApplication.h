@@ -16,11 +16,18 @@ public:
     virtual ~IHcApplication() = default;
 
     //
+    // generic ui apis
+    //
+
+    virtual auto StyleSheet() -> QString = 0;
+
+    //
     // agent page apis
     //
 
     virtual auto PageAgentAddTab(
         const std::string& name,
+        const QIcon&       icon,
         QWidget*           widget
     ) -> void = 0;
 

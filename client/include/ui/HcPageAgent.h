@@ -187,6 +187,12 @@ public:
         QWidget*       widget
     ) -> void;
 
+    auto addTab(
+        const QString& name,
+        const QIcon&   icon,
+        QWidget*       widget
+    ) -> void;
+
     auto addAgent(
         HcAgent* agent
     ) -> void;

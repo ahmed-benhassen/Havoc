@@ -395,45 +395,6 @@ auto HcAgent::unhide(
     }
 }
 
-// auto HcAgent::disconnected(
-//     void
-// ) -> void {
-//     spdlog::debug( "agent::disconnected {}", uuid() );
-//
-//     if ( ui.node->itemEdge() ) {
-//         ui.node->itemEdge()->setColor( Havoc->Theme.getComment() );
-//         ui.node->itemEdge()->setStatus(
-//             QString::fromStdString( AgentStatus::disconnected ),
-//             Havoc->Theme.getRed()
-//         );
-//     }
-// }
-//
-// auto HcAgent::unresponsive(
-//     void
-// ) -> void {
-//     spdlog::debug( "agent::unresponsive {}", uuid() );
-//
-//     if ( ui.node->itemEdge() ) {
-//         ui.node->itemEdge()->setColor( Havoc->Theme.getComment() );
-//         ui.node->itemEdge()->setStatus(
-//             QString::fromStdString( AgentStatus::unresponsive ),
-//             Havoc->Theme.getOrange()
-//         );
-//     }
-// }
-//
-// auto HcAgent::healthy(
-//     void
-// ) -> void {
-//     spdlog::debug( "agent::healthy {}", uuid() );
-//
-//     if ( ui.node->itemEdge() ) {
-//         ui.node->itemEdge()->setColor( parent().empty() ? Havoc->Theme.getGreen() : Havoc->Theme.getPurple() );
-//         ui.node->itemEdge()->setStatus( QString(), QColor() );
-//     }
-// }
-
 auto HcAgent::console() const -> HcAgentConsole*
 {
     return _console;

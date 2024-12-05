@@ -40,10 +40,7 @@ HcPageAgent::HcPageAgent(
 
     AgentTable = new QTableWidget( this );
     AgentTable->setObjectName( "AgentTable" );
-
-    if ( AgentTable->columnCount() < 11 ) {
-        AgentTable->setColumnCount( 11 );
-    }
+    AgentTable->setColumnCount( 11 );
 
     /* TODO: get how we should add this from the settings
      * for now we just do a default one */
@@ -167,12 +164,12 @@ auto HcPageAgent::retranslateUi() -> void {
 
 auto HcPageAgent::addTab(
     const QString& name,
+    const QIcon&   icon,
     QWidget*       widget
 ) -> void {
     //
     // first try to find the widget and
     // if found try to make it reappear
-    //
     for ( const auto dock : DockManager->dockWidgetsMap() ) {
         if ( dock->widget() == widget ) {
             dock->toggleView( true );
@@ -188,7 +185,7 @@ auto HcPageAgent::addTab(
     const auto tab = new ads::CDockWidget( name );
 
     tab->setWidget( widget );
-    tab->setIcon( QIcon( ":/icons/32px-agent-console" ) );
+    tab->setIcon( icon );
     tab->setFeatures(
         ads::CDockWidget::DockWidgetMovable   |
         ads::CDockWidget::DockWidgetFloatable |
@@ -196,9 +193,14 @@ auto HcPageAgent::addTab(
         ads::CDockWidget::DockWidgetClosable
     );
 
-    // DockManager->addDockWidget( ads::TopDockWidgetArea, tab );
-
     DockManager->addDockWidgetTabToArea( tab, ConsoleAreaWidget );
+}
+
+auto HcPageAgent::addTab(
+    const QString& name,
+    QWidget*       widget
+) -> void {
+    addTab( name, QIcon( ":/icons/32px-agent-console" ), widget );
 }
 
 HcAgentTableItem::HcAgentTableItem(
@@ -493,7 +495,7 @@ auto HcPageAgent::actionPayloadBuilder(
     // if there was an error while loading or executing
     // any scripts do not display the window
     //
-    if ( ! dialog.ErrorReceived ) {
+    if ( !dialog.ErrorReceived ) {
         dialog.exec();
     }
 }
