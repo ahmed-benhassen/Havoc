@@ -69,7 +69,7 @@ public:
         } listener;
 
         std::string name;
-        std::string icon;
+        QIcon       icon;
 
         HcFnCallbackCtx<void*> callback;
         py11::object           callback_py;

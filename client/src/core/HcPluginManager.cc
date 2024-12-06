@@ -1,5 +1,6 @@
 #include <Havoc.h>
 #include <core/HcPluginManager.h>
+#include <Python.h>
 
 class HcCoreApp : public IHcApplication {
 
@@ -10,6 +11,12 @@ public:
         void
     ) -> QString override {
         return Havoc->StyleSheet();
+    }
+
+    auto MainWindowWidget(
+        void
+    ) -> QMainWindow* override {
+        return Havoc->ui;
     }
 
     auto PageAgentAddTab(
@@ -26,7 +33,7 @@ public:
 
     auto RegisterAgentAction(
         const std::string&           action_name,
-        const std::string&           action_icon,
+        const QIcon&                 action_icon,
         HcFnCallbackCtx<std::string> action_func,
         const std::string&           agent_type
     ) -> void override {
@@ -38,12 +45,14 @@ public:
         action->callback   = reinterpret_cast<HcFnCallbackCtx<void*>>( action_func );
         action->agent.type = agent_type;
 
+        spdlog::debug( "action( {} )->icon: {}", action->name, action->icon.isNull() );
+
         Havoc->AddAction( action );
     }
 
     auto RegisterAgentAction(
         const std::string&           action_name,
-        const std::string&           action_icon,
+        const QIcon&                 action_icon,
         HcFnCallbackCtx<std::string> action_func
     ) -> void override {
         auto action = new HcApplication::ActionObject;
@@ -57,9 +66,9 @@ public:
     }
 
     auto RegisterAgentAction(
-        const std::string&         action_name,
+        const std::string&           action_name,
         HcFnCallbackCtx<std::string> action_func,
-        bool                       multi_select
+        bool                         multi_select
     ) -> void override {
         //
         // TODO: implement
@@ -68,7 +77,7 @@ public:
 
     auto RegisterMenuAction(
         const std::string& action_name,
-        const std::string& action_icon,
+        const QIcon&       action_icon,
         HcFnCallback       action_func
     ) -> void override {
         auto action = new HcApplication::ActionObject;
@@ -88,18 +97,21 @@ public:
     }
 
     auto PythonContextRun(
-        std::function<void()> Function
+        std::function<void()> function,
+        bool                  concurrent
     ) -> std::optional<std::runtime_error> override {
-        try {
-            auto gil = py11::gil_scoped_acquire();
+        auto gil = py11::gil_scoped_acquire();
 
-            Function();
-        } catch ( py11::error_already_set& e ) {
-            return std::runtime_error( e.what() ) ;
-        } catch ( std::exception& e ) {
-            return std::runtime_error( e.what() );
-        } catch ( ... ) {
-            return std::runtime_error( "unknown exception thrown" );
+        if ( concurrent ) {
+            //
+            // start the python context run in a separate thread
+            auto future = QtConcurrent::run( []( std::function<void()> Fn ) {
+                HcPythonAcquire();
+                Fn();
+            }, function );
+        } else {
+            HcPythonAcquire();
+            function();
         }
 
         return std::nullopt;
@@ -114,7 +126,11 @@ auto HcPluginManager::loadPlugin(
     auto loader = QPluginLoader( QString::fromStdString( path ) );
     auto plugin = qobject_cast<IHcPlugin*>( loader.instance() );
 
-    spdlog::debug( "loader.instance(): {} ({}) factory: {}", fmt::ptr( loader.instance() ), loader.instance()->metaObject()->className(), fmt::ptr( plugin ) );
+    spdlog::debug( "loader.instance(): {} ({}) factory: {}",
+        fmt::ptr( loader.instance() ),
+        loader.instance()->metaObject()->className(),
+        fmt::ptr( plugin )
+    );
 
     if ( !plugin ) {
         spdlog::error(

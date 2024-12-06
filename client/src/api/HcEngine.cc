@@ -169,4 +169,6 @@ HcPyEngine::~HcPyEngine() {
     PyThreadState_Delete( state );
 
     delete guard;
+
+    spdlog::debug( "python engine finalized" );
 };

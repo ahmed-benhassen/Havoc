@@ -6,9 +6,6 @@ class HcAgentConsole;
 struct HcAgent;
 
 #include <Common.h>
-#include <ui/HcPageAgent.h>
-#include <ui/HcSessionGraph.h>
-
 #include <IHcAgent.h>
 
 class HcAgentSignals final : public QObject {
@@ -35,8 +32,6 @@ signals:
         const QString& name
     ) -> void;
 };
-
-struct HcAgent;
 
 class HcAgentTableItem final : public QTableWidgetItem {
 

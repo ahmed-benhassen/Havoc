@@ -327,10 +327,10 @@ auto HcPageAgent::handleAgentMenu(
 
         for ( const auto action : agent_actions ) {
             if ( action->agent.type == type ) {
-                if ( action->icon.empty() ) {
+                if ( action->icon.isNull() ) {
                     menu.addAction( QString::fromStdString( action->name ) );
                 } else {
-                    menu.addAction( QIcon( QString::fromStdString( action->icon ) ), QString::fromStdString( action->name ) );
+                    menu.addAction( action->icon, QString::fromStdString( action->name ) );
                 }
             }
         }
@@ -353,12 +353,8 @@ auto HcPageAgent::handleAgentMenu(
             } else if ( action->text().compare( "Remove" ) == 0 ) {
                 remove.push_back( Agent( uuid ).value() );
             } else if ( action->text().compare( "Hide" ) == 0 ) {
-                // agent.value()->hidden = true;
-                // agent.value()->hide();
                 agent.value()->setHidden( true );
             } else if ( action->text().compare( "Un-Hide" ) == 0 ) {
-                // agent.value()->hidden = false;
-                // agent.value()->unhide();
                 agent.value()->setHidden( false );
             } else {
                 for ( const auto _action : agent_actions ) {
@@ -955,7 +951,8 @@ auto HcAgentConsole::inputEnter(
 
     //
     // invoke the command in a separate thread
-    //
+    // TODO: perhaps capture the future and add it
+    //       to a list that can be canceled.
     auto future = QtConcurrent::run( []( HcAgent* agent, const std::string& input ) {
         HcPythonAcquire();
 

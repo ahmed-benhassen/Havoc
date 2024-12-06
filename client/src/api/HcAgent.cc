@@ -273,7 +273,7 @@ auto HcAgentRegisterMenuAction(
 
     action->type        = HcApplication::ActionObject::ActionAgent;
     action->name        = name;
-    action->icon        = icon_path;
+    action->icon        = QIcon( QString::fromStdString( icon_path ) );
     action->callback_py = callback;
     action->agent.type  = agent_type;
 

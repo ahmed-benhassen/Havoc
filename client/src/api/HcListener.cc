@@ -51,7 +51,7 @@ auto HcListenerRegisterMenuAction(
 
     action->type          = HcApplication::ActionObject::ActionListener;
     action->name          = name;
-    action->icon          = icon;
+    action->icon          = QIcon( QString::fromStdString( icon ) );
     action->callback_py   = callback;
     action->listener.type = type;
 

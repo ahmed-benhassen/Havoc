@@ -2,6 +2,7 @@
 #define HCINTERFACE_IHCAPPLICATION_H
 
 #include <QWidget>
+#include <QMainWindow>
 #include <string>
 
 #include <IHcAgent.h>
@@ -20,6 +21,7 @@ public:
     //
 
     virtual auto StyleSheet() -> QString = 0;
+    virtual auto MainWindowWidget() -> QMainWindow* = 0;
 
     //
     // agent page apis
@@ -54,7 +56,7 @@ public:
      */
     virtual auto RegisterAgentAction(
         const std::string&           action_name,
-        const std::string&           action_icon,
+        const QIcon&                 action_icon,
         HcFnCallbackCtx<std::string> action_func,
         const std::string&           agent_type
     ) -> void = 0;
@@ -75,7 +77,7 @@ public:
      */
     virtual auto RegisterAgentAction(
         const std::string&           action_name,
-        const std::string&           action_icon,
+        const QIcon&                 action_icon,
         HcFnCallbackCtx<std::string> action_func
     ) -> void = 0;
 
@@ -116,7 +118,7 @@ public:
      */
     virtual auto RegisterMenuAction(
         const std::string& action_name,
-        const std::string& action_icon,
+        const QIcon&       action_icon,
         HcFnCallback       action_func
     ) -> void = 0;
 
@@ -147,7 +149,8 @@ public:
      *  it will be returned as a std::exception
      */
     virtual auto PythonContextRun(
-        std::function<void()> Function
+        std::function<void()> function,
+        bool                  concurrent
     ) -> std::optional<std::runtime_error> = 0;
 };
 

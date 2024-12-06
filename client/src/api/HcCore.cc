@@ -32,7 +32,7 @@ auto HcRegisterMenuAction(
 
     action->type        = HcApplication::ActionObject::ActionHavoc;
     action->name        = name;
-    action->icon        = icon_path;
+    action->icon        = QIcon( QString::fromStdString( icon_path ) );
     action->callback_py = callback;
 
     Havoc->AddAction( action );

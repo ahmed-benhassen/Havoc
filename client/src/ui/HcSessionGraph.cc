@@ -469,12 +469,12 @@ auto HcSessionGraphScene::contextMenuEvent(
         //
         // add the registered agent type actions
         //
-        for ( auto action : actions ) {
+        for ( const auto action : actions ) {
             if ( action->agent.type == agent_type ) {
-                if ( action->icon.empty() ) {
+                if ( action->icon.isNull() ) {
                     menu.addAction( action->name.c_str() );
                 } else {
-                    menu.addAction( QIcon( action->icon.c_str() ), action->name.c_str() );
+                    menu.addAction( action->icon, action->name.c_str() );
                 }
             }
         }
