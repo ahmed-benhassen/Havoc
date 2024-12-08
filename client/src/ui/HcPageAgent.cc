@@ -283,7 +283,11 @@ auto HcPageAgent::handleAgentMenu(
     auto remove        = std::vector<HcAgent*>();
 
     /* check if we point to a session table item/agent */
-    if ( ! AgentTable->itemAt( pos ) ) {
+    if ( !AgentTable->itemAt( pos ) ) {
+        return;
+    }
+
+    if ( selections.isEmpty() ) {
         return;
     }
 
