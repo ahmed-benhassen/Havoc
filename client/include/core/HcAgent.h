@@ -3,10 +3,12 @@
 
 class HcSessionGraphItem;
 class HcAgentConsole;
-struct HcAgent;
+class HcAgent;
 
 #include <Common.h>
 #include <IHcAgent.h>
+
+#include <QTableWidgetItem>
 
 class HcAgentSignals final : public QObject {
     Q_OBJECT
@@ -33,19 +35,7 @@ signals:
     ) -> void;
 };
 
-class HcAgentTableItem final : public QTableWidgetItem {
-
-public:
-    HcAgent* agent  = {};
-    bool     ignore = true;
-
-    explicit HcAgentTableItem(
-        const QString&          value,
-        HcAgent*                agent,
-        const Qt::ItemFlag      flags = Qt::ItemIsEditable,
-        const Qt::AlignmentFlag align = Qt::AlignCenter
-    );
-};
+class HcAgentTableItem;
 
 class HcAgent : public IHcAgent {
     std::string _uuid;
@@ -132,6 +122,19 @@ public:
 
     auto hide() -> void;
     auto unhide() -> void;
+};
+
+class HcAgentTableItem final : public QTableWidgetItem {
+public:
+    HcAgent* agent  = {};
+    bool     ignore = true;
+
+    explicit HcAgentTableItem(
+        const QString&          value,
+        HcAgent*                agent,
+        const Qt::ItemFlag      flags = Qt::ItemIsEditable,
+        const Qt::AlignmentFlag align = Qt::AlignCenter
+    );
 };
 
 #endif //HAVOCCLIENT_HCAGENT_H

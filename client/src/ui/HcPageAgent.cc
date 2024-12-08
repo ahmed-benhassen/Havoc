@@ -262,7 +262,7 @@ auto HcPageAgent::addAgent(
 
     agent->ui.node = AgentGraph->addAgent( agent );
 
-    if ( ! agent->parent().empty() ) {
+    if ( !agent->parent().empty() ) {
         pivots++;
     }
 
