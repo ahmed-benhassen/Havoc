@@ -32,7 +32,7 @@ func (db *Database) AgentInsert(uuid, _type, parent, status, note string, metada
 
 	// create sql insert statement
 	if stmt, err = db.sqlite.Prepare(`
-        INSERT INTO Agents (uuid, type, parent, status, note, metadata, disabled, hide) values(?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO Agents (uuid, type, parent, status, note, metadata, disabled) values(?, ?, ?, ?, ?, ?, ?)
     `); err != nil {
 		logger.DebugError("sqlite.Prepare failed: %v", err)
 		return err
@@ -46,7 +46,6 @@ func (db *Database) AgentInsert(uuid, _type, parent, status, note string, metada
 		status,
 		note,
 		metadata,
-		false,
 		false,
 	); err != nil {
 		logger.DebugError("stmt.Exec failed: %v", err)
