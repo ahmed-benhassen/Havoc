@@ -273,7 +273,7 @@ auto HcPayloadBuild::generate(
     // generate the configuration for the payload
     //
 
-    auto [status, response] = Havoc->ApiSend( "/api/agent/build", {
+    auto [status, response] = Havoc->ApiSend( "api/agent/build", {
         { "name",   type    },
         { "config", profile },
     } );

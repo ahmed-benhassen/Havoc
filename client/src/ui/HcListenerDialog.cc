@@ -166,7 +166,7 @@ auto HcListenerDialog::save() -> void {
     State = Error;
 
     auto [status_code, response] = Havoc->ApiSend(
-        edited_config.empty() ? "/api/listener/start" : "/api/listener/edit",
+        edited_config.empty() ? "api/listener/start" : "api/listener/edit",
         data
     );
 

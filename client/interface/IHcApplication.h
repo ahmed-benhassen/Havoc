@@ -138,10 +138,14 @@ public:
      * @brief
      *  run function under the context of the gil
      *
-     * @param Function
+     * @param function
      *  function to run that requires the
      *  current thread context to hold the
      *  python global interpreter lock
+     *
+     * @param concurrent
+     *  if the specified function needs to be
+     *  fun under a concurrent task/thread
      *
      * @return
      *  the specified function raises any kind
@@ -151,7 +155,7 @@ public:
     virtual auto PythonContextRun(
         std::function<void()> function,
         bool                  concurrent
-    ) -> std::optional<std::runtime_error> = 0;
+    ) -> void = 0;
 };
 
 #endif //HCINTERFACE_IHCAPPLICATION_H

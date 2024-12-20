@@ -37,15 +37,13 @@ public:
         HcFnCallbackCtx<std::string> action_func,
         const std::string&           agent_type
     ) -> void override {
-        auto action = new HcApplication::ActionObject;
+        const auto action = new HcApplication::ActionObject;
 
         action->type       = HcApplication::ActionObject::ActionAgent;
         action->name       = action_name;
         action->icon       = action_icon;
         action->callback   = reinterpret_cast<HcFnCallbackCtx<void*>>( action_func );
         action->agent.type = agent_type;
-
-        spdlog::debug( "action( {} )->icon: {}", action->name, action->icon.isNull() );
 
         Havoc->AddAction( action );
     }
@@ -55,7 +53,7 @@ public:
         const QIcon&                 action_icon,
         HcFnCallbackCtx<std::string> action_func
     ) -> void override {
-        auto action = new HcApplication::ActionObject;
+        const auto action = new HcApplication::ActionObject;
 
         action->type     = HcApplication::ActionObject::ActionAgent;
         action->name     = action_name;
@@ -80,7 +78,7 @@ public:
         const QIcon&       action_icon,
         HcFnCallback       action_func
     ) -> void override {
-        auto action = new HcApplication::ActionObject;
+        const auto action = new HcApplication::ActionObject;
 
         action->type     = HcApplication::ActionObject::ActionHavoc;
         action->name     = action_name;
@@ -98,23 +96,25 @@ public:
 
     auto PythonContextRun(
         std::function<void()> function,
-        bool                  concurrent
-    ) -> std::optional<std::runtime_error> override {
-        auto gil = py11::gil_scoped_acquire();
-
-        if ( concurrent ) {
-            //
-            // start the python context run in a separate thread
-            auto future = QtConcurrent::run( []( std::function<void()> Fn ) {
-                HcPythonAcquire();
-                Fn();
-            }, function );
-        } else {
+        const bool            concurrent
+    ) -> void override {
+        //
+        // invoke the function in the current thread
+        // if concurrent is not enabled or specified
+        if ( !concurrent ) {
             HcPythonAcquire();
+
             function();
+
+            return;
         }
 
-        return std::nullopt;
+        //
+        // start the python context run in a separate thread
+        auto future = QtConcurrent::run( []( const std::function<void()>& Fn ) {
+            HcPythonAcquire();
+            Fn();
+        }, function );
     }
 };
 

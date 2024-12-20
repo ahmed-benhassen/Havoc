@@ -231,7 +231,6 @@ auto HcApplication::ApiLogin(
     auto error     = std::string();
     auto object    = json();
     auto api_login = std::format( "https://{}:{}/api/login", data[ "host" ].get<std::string>(), data[ "port" ].get<std::string>() );
-    auto ssl_box   = QMessageBox();
 
     //
     // send request with the specified login data
@@ -331,7 +330,7 @@ auto HcApplication::ApiSend(
     // validate that the ssl hash against the
     // profile that has been marked as safe
     //
-    if ( ssl_hash != Havoc->session.ssl_hash ) {
+    if ( !ssl_hash.empty() && ssl_hash != Havoc->session.ssl_hash ) {
         //
         // TODO: use QMetaObject::invokeMethod to call MessageBox
         //       to alert that the ssl hash has been changed
@@ -357,34 +356,35 @@ auto HcApplication::ServerPullPlugins(
 
     splash->showMessage( "pulling plugins information", Qt::AlignLeft | Qt::AlignBottom, Qt::white );
 
-    auto [status_code, response] = ApiSend( "/api/plugin/list", {} );
+    auto [status_code, response] = ApiSend( "api/plugin/list", {} );
     if ( status_code != 200 ) {
         Helper::MessageBox(
             QMessageBox::Critical,
             "plugin processing failure",
             "failed to pull all registered plugins"
         );
-        return;
+        goto END;
     }
 
     try {
         if ( ( plugins = json::parse( response ) ).is_discarded() ) {
             spdlog::debug( "plugin processing json response has been discarded" );
-            return;
+            splash->close();
+            goto END;
         }
     } catch ( std::exception& e ) {
         spdlog::error( "failed to parse plugin processing json response: \n{}", e.what() );
-        return;
+        goto END;
     }
 
     if ( plugins.empty() ) {
         spdlog::debug( "no plugins to process" );
-        return;
+        goto END;
     }
 
-    if ( ! plugins.is_array() ) {
+    if ( !plugins.is_array() ) {
         spdlog::error( "plugins response is not an array" );
-        return;
+        goto END;
     }
 
     //
@@ -466,6 +466,7 @@ auto HcApplication::ServerPullPlugins(
         }
     }
 
+END:
     splash->showMessage( "process plugins and store", Qt::AlignLeft | Qt::AlignBottom, Qt::white );
 
     //
@@ -516,7 +517,7 @@ auto HcApplication::ServerPullResource(
 
     auto fil_resource = QFile( file_info.absoluteFilePath() );
     if ( ! fil_resource.exists() ) {
-        auto [status_code, response] = Havoc->ApiSend( "/api/plugin/resource", {
+        auto [status_code, response] = Havoc->ApiSend( "api/plugin/resource", {
             { "name",     name     },
             { "resource", resource },
         } );

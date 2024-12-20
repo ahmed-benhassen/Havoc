@@ -409,6 +409,16 @@ QTextEdit {
     color: #f8f8f2;
 }
 
+QTreeWidget[HcTreeWidget="dark"] {
+    background-color: #282A36;
+    color: #f8f8f2;
+}
+
+QTreeWidget[HcTreeWidget="dark"]::item:selected {
+    background-color: #6272a4;
+    color: #F8F8F2;
+}
+
 QListWidget[HcListWidget="dark"] {
     background-color: #282A36;
     color: #f8f8f2;

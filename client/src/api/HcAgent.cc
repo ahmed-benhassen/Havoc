@@ -195,7 +195,7 @@ auto HcAgentExecute(
     //
     // send api request
     //
-    auto [status, response] = Havoc->ApiSend( "/api/agent/execute", request, true );
+    auto [status, response] = Havoc->ApiSend( "api/agent/execute", request, true );
 
     //
     // check for valid status response

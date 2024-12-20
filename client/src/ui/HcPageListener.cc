@@ -557,7 +557,7 @@ auto HcListener::stop(
     auto error = std::string();
     auto data  = json();
 
-    auto [status, response] = Havoc->ApiSend( "/api/listener/stop", {
+    auto [status, response] = Havoc->ApiSend( "api/listener/stop", {
         { "name", name }
     } );
 
@@ -599,7 +599,7 @@ auto HcListener::start(
     auto error = std::string();
     auto data  = json();
 
-    auto [status, response] = Havoc->ApiSend( "/api/listener/start", {
+    auto [status, response] = Havoc->ApiSend( "api/listener/start", {
         { "name",     name     },
         { "protocol", protocol }
     } );
@@ -642,7 +642,7 @@ auto HcListener::restart(
     auto error = std::string();
     auto data  = json();
 
-    auto [status, response] = Havoc->ApiSend( "/api/listener/restart", {
+    auto [status, response] = Havoc->ApiSend( "api/listener/restart", {
         { "name", name }
     } );
 
@@ -690,7 +690,7 @@ auto HcListener::edit(
     // config from the listener
     //
 
-    auto [status, response] = Havoc->ApiSend( "/api/listener/config", { { "name", name } } );
+    auto [status, response] = Havoc->ApiSend( "api/listener/config", { { "name", name } } );
 
     if ( status != 200 ) {
         if ( response.empty() ) {
@@ -750,7 +750,7 @@ auto HcListener::remove(
     auto error = std::string();
     auto data  = json();
 
-    auto [status, response] = Havoc->ApiSend( "/api/listener/remove", {
+    auto [status, response] = Havoc->ApiSend( "api/listener/remove", {
         { "name", name }
     } );
 

@@ -518,7 +518,7 @@ auto HcPageAgent::itemChanged(
         }
 
         auto note               = agent_item->text().toStdString();
-        auto [status, response] = Havoc->ApiSend( "/api/agent/note", {
+        auto [status, response] = Havoc->ApiSend( "api/agent/note", {
             { "uuid", agent_item->agent->uuid() },
             { "note", note }
         } );

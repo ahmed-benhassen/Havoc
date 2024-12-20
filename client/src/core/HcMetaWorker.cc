@@ -31,7 +31,7 @@ auto HcMetaWorker::listeners(
 
     Havoc->splash->showMessage( "pulling active listeners", Qt::AlignLeft | Qt::AlignBottom, Qt::white );
 
-    auto [status_code, response] = Havoc->ApiSend( "/api/listener/list", {} );
+    auto [status_code, response] = Havoc->ApiSend( "api/listener/list", {} );
 
     if ( status_code != 200 ) {
         Helper::MessageBox(
@@ -82,7 +82,7 @@ auto HcMetaWorker::agents(
 
     Havoc->splash->showMessage( "pulling agent sessions", Qt::AlignLeft | Qt::AlignBottom, Qt::white );
 
-    auto [status_code, response] = Havoc->ApiSend( "/api/agent/list", {} );
+    auto [status_code, response] = Havoc->ApiSend( "api/agent/list", {} );
 
     if ( status_code != 200 ) {
         Helper::MessageBox(
@@ -147,7 +147,7 @@ auto HcMetaWorker::console(
 ) -> void {
     auto list = json();
 
-    auto [status_code, response] = Havoc->ApiSend( "/api/agent/console", { { "uuid", uuid } } );
+    auto [status_code, response] = Havoc->ApiSend( "api/agent/console", { { "uuid", uuid } } );
 
     if ( status_code != 200 ) {
         Helper::MessageBox(

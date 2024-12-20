@@ -332,7 +332,7 @@ auto HcAgent::writeConsole(
 auto HcAgent::remove() -> void {
     spdlog::debug( "agent::remove {}", uuid() );
 
-    auto [status, response] = Havoc->ApiSend( "/api/agent/remove", { { "uuid", uuid() } } );
+    auto [status, response] = Havoc->ApiSend( "api/agent/remove", { { "uuid", uuid() } } );
 
     if ( status != 200 ) {
         Helper::MessageBox(
