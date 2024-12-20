@@ -316,7 +316,7 @@ func (api *ServerApi) agentConsole(ctx *gin.Context) {
 		goto ERROR
 	}
 
-	logger.Debug("/api/agent/remove -> %v", string(body))
+	logger.Debug("/api/agent/console -> %v", string(body))
 
 	// unmarshal the bytes into a map
 	if err = json.Unmarshal(body, &response); err != nil {

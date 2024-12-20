@@ -64,10 +64,12 @@ func NewServerApi(havoc pkg.IHavocCore) (*ServerApi, error) {
 		engine:     gin.New(),
 	}
 
+	//
 	// login & logout endpoint
 	api.engine.POST("/api/login", api.login)
 	api.engine.POST("/api/logout", api.logout)
 
+	//
 	// listeners endpoints
 	api.engine.POST("/api/listener/list", api.listenerList)
 	api.engine.POST("/api/listener/start", api.listenerStart)
@@ -78,6 +80,7 @@ func NewServerApi(havoc pkg.IHavocCore) (*ServerApi, error) {
 	api.engine.POST("/api/listener/event", api.listenerEvent)
 	api.engine.POST("/api/listener/config", api.listenerConfig)
 
+	//
 	// agent endpoints
 	api.engine.POST("/api/agent/list", api.agentList)
 	api.engine.POST("/api/agent/build", api.agentBuild)
@@ -86,13 +89,13 @@ func NewServerApi(havoc pkg.IHavocCore) (*ServerApi, error) {
 	api.engine.POST("/api/agent/console", api.agentConsole)
 	api.engine.POST("/api/agent/remove", api.agentRemove)
 
+	//
 	// plugin api endpoints
 	api.engine.POST("/api/plugin/list", api.pluginList)
 	api.engine.POST("/api/plugin/resource", api.pluginResource)
 
 	//
 	// websocket event endpoint
-	//
 	api.engine.GET("/api/event", api.event)
 
 	return api, nil
