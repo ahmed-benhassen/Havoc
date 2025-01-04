@@ -718,22 +718,19 @@ auto HcSessionGraphItem::paint(
         //
         painter->drawImage( rect, QImage( ":/graph/server" ) );
     } else {
-        if ( ! graph()->isServer( parent() ) ) {
-            //
-            // check if the parent is not the server. if no then
-            // it means that the current item is a pivot session
-            //
-        } else {
-            //
-            // it's a direct session connection
-            // via no pivoting agent
-            //
-
-            //
-            // TODO: make it available over the scripting engine
-            //       to specify what kind of image to render
-            //
-        }
+        // TODO: reintroduce this once we allow pivot/direct based icons
+        //
+        // if ( !graph()->isServer( parent() ) ) {
+        //     //
+        //     // check if the parent is not the server. if no then
+        //     // it means that the current item is a pivot session
+        //     //
+        // } else {
+        //     //
+        //     // it's a direct session connection
+        //     // via no pivoting agent
+        //     //
+        // }
 
         painter->drawImage( rect, _agent->image() );
     }

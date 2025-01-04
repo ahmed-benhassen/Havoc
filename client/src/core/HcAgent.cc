@@ -146,7 +146,7 @@ auto HcAgent::initialize() -> bool {
     _console->setInputLabel( ">>>" );
     _console->LabelHeader->setFixedHeight( 0 );
 
-    if ( ! HcAgentCompletionList->empty() ) {
+    if ( !HcAgentCompletionList->empty() ) {
         for ( int i = 0; i < HcAgentCompletionList->at( _type ).size(); i++ ) {
             auto [command, description] = HcAgentCompletionList->at( _type ).at( i );
 
@@ -316,6 +316,8 @@ auto HcAgent::setImage(
     const QImage& image
 ) -> void {
     _image = image;
+
+    ui.table.Uuid->setIcon( QPixmap::fromImage( image ) );
 }
 
 auto HcAgent::writeConsole(

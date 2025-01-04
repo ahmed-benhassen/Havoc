@@ -6,12 +6,12 @@ auto HcApplication::eventDispatch(
     auto type = std::string();
     auto data = json();
 
-    if ( ! event.contains( "type" ) ) {
+    if ( !event.contains( "type" ) ) {
         spdlog::debug( "invalid event: {}", event.dump() );
         return;
     }
 
-    if ( ! event.contains( "data" ) ) {
+    if ( !event.contains( "data" ) ) {
         spdlog::debug( "invalid event: {}", event.dump() );
         return;
     }
@@ -212,6 +212,17 @@ auto HcApplication::eventDispatch(
         auto out           = std::string();
         auto callback_uuid = std::string();
 
+        //
+        // TODO: when the client disconnects do following
+        //       close all callbacks:
+        //          close all callbacks associated with the client on the team server
+        //          side so the current client wont receive any unregistered callbacks
+        //          that does not longer exist etc.
+        //       redesign callback api:
+        //          design the callback api in a way where it gets restored and continue
+        //          executing the script
+        //
+
         if ( data.empty() ) {
             spdlog::error( "Event::agent::callback: invalid package (data emtpy)" );
             return;
@@ -290,10 +301,12 @@ auto HcApplication::eventDispatch(
 
             //
             // get registered callback object
-            //
             auto callback = Havoc->CallbackObject( callback_uuid );
-            if ( ! callback.has_value() ) {
-                spdlog::error( "CallbackObject has no value: {}", callback_uuid );
+            if ( !callback.has_value() ) {
+                //
+                // this happens if we restarted the client
+                // while a script was in use of a callback
+                spdlog::debug( "CallbackObject has no value: {}", callback_uuid );
                 return;
             }
 
@@ -301,7 +314,6 @@ auto HcApplication::eventDispatch(
             // search for the agent via the specified uuid &
             // check if we found the agent and if it contains
             // a python interface
-            //
             auto agent = Havoc->ui->PageAgent->Agent( uuid );
             if ( agent.has_value() && agent.value()->interface().has_value() ) {
                 pat = QByteArray::fromBase64( out.c_str() ).toStdString();

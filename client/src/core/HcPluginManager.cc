@@ -103,7 +103,6 @@ public:
         // if concurrent is not enabled or specified
         if ( !concurrent ) {
             HcPythonAcquire();
-
             function();
 
             return;
@@ -111,10 +110,15 @@ public:
 
         //
         // start the python context run in a separate thread
-        auto future = QtConcurrent::run( []( const std::function<void()>& Fn ) {
+        //
+        // TODO: this sometimes wont get triggered properly
+        //       look into this or change this to QThread
+        const auto future = QtConcurrent::run( []( const std::function<void()>& Fn ) {
             HcPythonAcquire();
             Fn();
         }, function );
+
+        QApplication::processEvents();
     }
 };
 

@@ -144,7 +144,7 @@ HcPyEngine::HcPyEngine() {
     try {
         auto _ = py11::module_::import( "sys" )
             .attr( "path" )
-            .attr( "append" )( "python" );
+            .attr( "append" )( "python" ); // TODO: perhaps get the real path and append it this way.
 
         py11::module_::import( "pyhavoc" );
     } catch ( py11::error_already_set &eas ) {
