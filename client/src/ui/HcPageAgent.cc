@@ -42,6 +42,8 @@ HcPageAgent::HcPageAgent(
     AgentTable->setObjectName( "AgentTable" );
     AgentTable->setColumnCount( 11 );
 
+    AgentTable->setIconSize( QSize( 25, 25 ) );
+
     /* TODO: get how we should add this from the settings
      * for now we just do a default one */
     AgentTable->setHorizontalHeaderItem( 0,  TitleAgentID      );
