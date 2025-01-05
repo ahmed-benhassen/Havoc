@@ -1084,7 +1084,6 @@ auto HcApplication::ScriptConfigProcess(
 ) -> void {
     //
     // load the registered scripts
-    //
     if ( config.contains( "scripts" ) && config.at( "scripts" ).is_table() ) {
         auto scripts_tbl = config.at( "scripts" ).as_table();
 
@@ -1103,7 +1102,6 @@ auto HcApplication::ScriptConfigProcess(
     //
     // load scripts from the profile now that
     // have been previously loaded via the UI
-    //
     for ( const auto& script : ProfileQuery( "script" ) ) {
         if ( !script.contains( "path" ) ) {
             continue;

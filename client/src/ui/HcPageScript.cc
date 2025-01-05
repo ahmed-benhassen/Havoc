@@ -170,8 +170,13 @@ auto HcPagePlugins::retranslateUi() -> void {
 auto HcPagePlugins::LoadScript(
     const std::string& path
 ) -> void {
-    if ( ! QFile( path.c_str() ).exists() ) {
+    if ( !QFile( path.c_str() ).exists() ) {
         spdlog::error( "attempted to load invalid scripts path: {}", path );
+
+        //
+        // add the entry still to the table but
+        // indicate that we have failed to load it
+        AddScriptPath( QString::fromStdString( path ), "invalid scripts path" );
         return;
     }
 
@@ -188,10 +193,14 @@ auto HcPagePlugins::LoadScript(
             //
             // print the exception to the python UI widget
             // console and to the client console
-            //
             auto fmt = std::format( "failed to load script {}: \n{}", path, eas.what() );
             PyConsole->append( QString::fromStdString( fmt ) );
             spdlog::error( "{}", fmt );
+
+            //
+            // add the entry still to the table but
+            // indicate that we have failed to load it
+            AddScriptPath( QString::fromStdString( path ), "exception raised during loading" );
         }
     } else {
         spdlog::debug( "PageScripts->LoadCallback not set" );
@@ -199,13 +208,21 @@ auto HcPagePlugins::LoadScript(
 }
 
 auto HcPagePlugins::AddScriptPath(
-    const QString& path
+    const QString& path,
+    const QString& error
 ) -> void {
-    auto row  = TablePluginsWidget->rowCount();
-    auto sort = TablePluginsWidget->isSortingEnabled();
-    auto item = new QTableWidgetItem( QFileInfo( path ).canonicalFilePath() );
+    const auto row   = TablePluginsWidget->rowCount();
+    const auto sort  = TablePluginsWidget->isSortingEnabled();
+    const auto _path = QFileInfo( path ).canonicalFilePath();
+    const auto item  = new QTableWidgetItem( _path );
 
     item->setFlags( item->flags() ^ Qt::ItemIsEditable );
+
+    if ( !error.isEmpty() ) {
+        item->setText( _path.isEmpty() ? path : _path );
+        item->setToolTip( error );
+        item->setForeground( Havoc->Theme.getRed() );
+    }
 
     TablePluginsWidget->setRowCount( row + 1 );
     TablePluginsWidget->setSortingEnabled( false );

@@ -55,7 +55,8 @@ public:
     ) -> void;
 
     auto AddScriptPath(
-        const QString& path
+        const QString& path,
+        const QString& error = ""
     ) -> void;
 
     auto processPlugins(
