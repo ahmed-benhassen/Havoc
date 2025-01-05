@@ -12,6 +12,7 @@ type IHavocCore interface {
 	LogPanic(fmt string, args ...any)
 
 	Version() map[string]string
+	Config() map[string]any
 
 	UserAuthenticate(username, password string) bool
 	UserLogin(token string, login any, socket *websocket.Conn)

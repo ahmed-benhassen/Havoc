@@ -154,6 +154,10 @@ func (*Teamserver) Version() map[string]string {
 	}
 }
 
+func (t *Teamserver) Config() map[string]any {
+	return t.profile.Config()
+}
+
 func (t *Teamserver) createConfigPath() error {
 	var err error
 
