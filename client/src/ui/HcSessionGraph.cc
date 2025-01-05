@@ -17,15 +17,15 @@ HcSessionGraph::HcSessionGraph(
 
     box_layout = new QGridLayout( this );
     _settings  = new HcSessionGraphSetting( this );
-    server     = new HcSessionGraphItem( nullptr, this );
 
     box_layout->setAlignment( Qt::AlignLeft | Qt::AlignTop );
     box_layout->addWidget( _settings );
 
-    _scene->addItem( server );
-    server->setPos( 100, 50 );
-
-    _nodes.push_back( server );
+    // server = new HcSessionGraphItem( nullptr, this );
+    // _scene->addItem( server );
+    // server->setPos( 100, 50 );
+    //
+    // _nodes.push_back( server );
 }
 
 HcSessionGraph::~HcSessionGraph() {
@@ -51,6 +51,15 @@ auto HcSessionGraph::addAgent(
     HcAgent *agent
 ) -> HcSessionGraphItem* {
     const auto item = new HcSessionGraphItem( agent, this );
+
+    if ( !server ) {
+        server = new HcSessionGraphItem( nullptr, this );
+
+        _scene->addItem( server );
+        // server->setPos( 100, 50 );
+
+        _nodes.push_back( server );
+    }
 
     if ( agent->parent().empty() ) {
         item->setItemEdge( new HcSessionGraphEdge( server, item, Havoc->Theme.getGreen() ) );

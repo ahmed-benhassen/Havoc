@@ -93,7 +93,6 @@ HcPageAgent::HcPageAgent(
     // this is just a "ghost" widget. It is meant to be added
     // first on the bottom dock widget area where in future the
     // agent console are going to be places as well.
-    //
     ghost->setWidget( new QWidget );
 
     auto area         = DockManager->addDockWidget( ads::TopDockWidgetArea,    graph );
@@ -103,7 +102,6 @@ HcPageAgent::HcPageAgent(
     //
     // turn it invisible. it is not meant
     // to be seen or interacted with
-    //
     ghost->toggleView( false );
 
     AgentDisplayerSessions = new QLabel( this );
