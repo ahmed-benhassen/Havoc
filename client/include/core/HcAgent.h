@@ -44,6 +44,7 @@ class HcAgent : public IHcAgent {
     std::string _status;
     QDateTime   _last;
     json        _data;
+    bool        _elevated;
 
     std::optional<py11::object> _interface;
     HcAgentConsole*             _console;
@@ -101,6 +102,8 @@ public:
     auto setHidden(
         bool hidden
     ) -> void override;
+
+    auto elevated() const -> bool;
 
     auto image() -> QImage override;
     auto setImage(

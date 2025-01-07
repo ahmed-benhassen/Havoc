@@ -267,10 +267,8 @@ auto HcPageAgent::addAgent(
         pivots++;
     }
 
-    if ( agent->data().contains( "elevated" ) && agent->data()[ "elevated" ].is_boolean() ) {
-        if ( agent->data()[ "elevated" ].get<bool>() ) {
-            elevated++;
-        }
+    if ( agent->elevated() ) {
+        elevated++;
     }
 
     AgentDisplayerSessions->setText( QString( "Sessions: %1" ).arg( agents.size() ) );
@@ -593,11 +591,8 @@ auto HcPageAgent::removeAgent(
     if ( agent ) {
         HcPythonAcquire();
 
-        is_pivot = !agent->parent().empty();
-
-        if ( agent->data().contains( "elevated" ) && agent->data()[ "elevated" ].is_boolean() ) {
-            is_elevated = agent->data()[ "elevated" ].get<bool>();
-        }
+        is_pivot    = !agent->parent().empty();
+        is_elevated = agent->elevated();
 
         for ( const auto dock : DockManager->dockWidgetsMap() ) {
             if ( dock->widget() == agent->console() ) {
@@ -622,7 +617,7 @@ auto HcPageAgent::removeAgent(
 
     AgentDisplayerSessions->setText( QString( "Sessions: %1" ).arg( agents.size() ) );
     AgentDisplayerPivots->setText( QString( "Pivots: %1" ).arg( is_pivot ? --pivots : pivots ) );
-    AgentDisplayerPivots->setText( QString( "Elevated: %1" ).arg( is_elevated ? --elevated : elevated ) );
+    AgentDisplayerElevated->setText( QString( "Elevated: %1" ).arg( is_elevated ? --elevated : elevated ) );
 }
 
 HcDescriptionDelegate::HcDescriptionDelegate(

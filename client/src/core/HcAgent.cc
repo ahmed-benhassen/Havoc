@@ -66,6 +66,12 @@ auto HcAgent::initialize() -> bool {
         spdlog::debug( "{} has no parent (is direct connection)", uuid() );
     }
 
+    if ( meta.contains( "elevated" ) && meta[ "elevated" ].is_boolean() ) {
+        _elevated = meta[ "elevated" ].get<bool>();
+    } else {
+        spdlog::debug( "[HcAgent::parse] agent does not contain valid meta elevated status" );
+    }
+
     if ( meta.contains( "user" ) && meta[ "user" ].is_string() ) {
         user = QString( meta[ "user" ].get<std::string>().c_str() );
     } else {
@@ -400,4 +406,9 @@ auto HcAgent::unhide(
 auto HcAgent::console() const -> HcAgentConsole*
 {
     return _console;
+}
+
+auto HcAgent::elevated() const -> bool
+{
+    return _elevated;
 }
