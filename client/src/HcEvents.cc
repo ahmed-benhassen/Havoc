@@ -547,7 +547,8 @@ auto HcApplication::eventDispatch(
         if ( auto agent = Agent( uuid ) ) {
             if ( agent.has_value() ) {
                 agent.value()->ui.table.Note->ignore = true;
-                agent.value()->ui.table.Note->setText( note.c_str() );
+                agent.value()->ui.table.Note->setText( QString::fromStdString( note ) );
+                agent.value()->ui.table.Note->setToolTip( QString::fromStdString( note ) );
                 agent.value()->ui.table.Note->ignore = false;
             } else {
                 spdlog::error( "invalid agent note: \"uuid\" agent does not have any value" );

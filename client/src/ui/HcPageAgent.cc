@@ -210,6 +210,7 @@ HcAgentTableItem::HcAgentTableItem(
     const Qt::AlignmentFlag align
 )  : agent( agent ) {
     setText( value );
+    setToolTip( value );
     setTextAlignment( align );
     setFlags( this->flags() ^ flags );
 }
