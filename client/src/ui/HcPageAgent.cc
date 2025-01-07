@@ -267,9 +267,15 @@ auto HcPageAgent::addAgent(
         pivots++;
     }
 
+    if ( agent->data().contains( "elevated" ) && agent->data()[ "elevated" ].is_boolean() ) {
+        if ( agent->data()[ "elevated" ].get<bool>() ) {
+            elevated++;
+        }
+    }
+
     AgentDisplayerSessions->setText( QString( "Sessions: %1" ).arg( agents.size() ) );
     AgentDisplayerPivots->setText( QString( "Pivots: %1" ).arg( pivots ) );
-    AgentDisplayerElevated->setText( "Elevated: 0" );
+    AgentDisplayerElevated->setText( QString( "Elevated: %1" ).arg( elevated ) );
 }
 
 auto HcPageAgent::handleAgentMenu(
@@ -552,9 +558,11 @@ auto HcPageAgent::actionTriggered(
 auto HcPageAgent::removeAgent(
     const std::string& uuid
 ) -> void {
-    HcAgent* agent     = {};
-    auto     item_uuid = std::string();
-    auto     is_pivot  = false;
+    HcAgent* agent       = {};
+    auto     item_uuid   = std::string();
+    auto     is_pivot    = false;
+    auto     is_elevated = false;
+
     //
     // remove the agent from
     // the table ui widget entry
@@ -585,7 +593,11 @@ auto HcPageAgent::removeAgent(
     if ( agent ) {
         HcPythonAcquire();
 
-        is_pivot = ! agent->parent().empty();
+        is_pivot = !agent->parent().empty();
+
+        if ( agent->data().contains( "elevated" ) && agent->data()[ "elevated" ].is_boolean() ) {
+            is_elevated = agent->data()[ "elevated" ].get<bool>();
+        }
 
         for ( const auto dock : DockManager->dockWidgetsMap() ) {
             if ( dock->widget() == agent->console() ) {
@@ -610,6 +622,7 @@ auto HcPageAgent::removeAgent(
 
     AgentDisplayerSessions->setText( QString( "Sessions: %1" ).arg( agents.size() ) );
     AgentDisplayerPivots->setText( QString( "Pivots: %1" ).arg( is_pivot ? --pivots : pivots ) );
+    AgentDisplayerPivots->setText( QString( "Elevated: %1" ).arg( is_elevated ? --elevated : elevated ) );
 }
 
 HcDescriptionDelegate::HcDescriptionDelegate(
