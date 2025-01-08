@@ -70,10 +70,11 @@ auto HcApplication::Main(
     // display the operator with the connection
     // dialog and saved profile connections and
     // save the connection details in the profile
-    //
     const auto connector = new HcConnectDialog();
 
-    if ( ( data = connector->start() ).empty() || ( ! connector->connected() ) ) {
+    if ( ( data = connector->start() ).empty() || ( !connector->connected() ) ) {
+        delete connector;
+        Exit();
         return;
     }
 
@@ -84,7 +85,7 @@ auto HcApplication::Main(
     //
 
     auto [token, ssl_hash] = ApiLogin( data );
-    if ( ( ! token.has_value() ) || ( ! ssl_hash.has_value() ) ) {
+    if ( ( !token.has_value() ) || ( ! ssl_hash.has_value() ) ) {
         Helper::MessageBox(
             QMessageBox::Critical,
             "Login failure",
