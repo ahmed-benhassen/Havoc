@@ -50,13 +50,12 @@ auto HcSessionGraph::scaleView(
 auto HcSessionGraph::addAgent(
     HcAgent *agent
 ) -> HcSessionGraphItem* {
-    const auto item = new HcSessionGraphItem( agent, this );
+    const auto item  = new HcSessionGraphItem( agent, this );
 
     if ( !server ) {
         server = new HcSessionGraphItem( nullptr, this );
 
         _scene->addItem( server );
-        // server->setPos( 100, 50 );
 
         _nodes.push_back( server );
     }
@@ -66,6 +65,23 @@ auto HcSessionGraph::addAgent(
         item->addParent( server );
 
         server->addPivot( item );
+        _scene->addItem( item->itemEdge() );
+
+        //
+        // connect all pivots to itself
+        for ( const auto n : _nodes ) {
+            if ( isServer( n ) ) {
+                continue;
+            }
+
+            if ( n->agent()->parent() == agent->uuid() ) {
+                n->setItemEdge( new HcSessionGraphEdge( item, n, Havoc->Theme.getPurple() ) );
+                n->addParent( item );
+
+                item->addPivot( n );
+                _scene->addItem( n->itemEdge() );
+            }
+        }
     } else {
         if ( const auto agent_parent = Havoc->Agent( agent->parent() ); agent_parent.has_value() ) {
             const auto node = agent_parent.value()->ui.node;
@@ -74,13 +90,14 @@ auto HcSessionGraph::addAgent(
             item->addParent( node );
 
             node->addPivot( item );
+
+            _scene->addItem( item->itemEdge() );
         } else {
             spdlog::debug( "failed to add agent {}: parent has not been found or registered {}", agent->uuid(), agent->parent() );
         }
     }
 
     _scene->addItem( item );
-    _scene->addItem( item->itemEdge() );
     _nodes.push_back( item );
 
     HcGraphLayoutTree::draw( server );
@@ -95,19 +112,18 @@ auto HcSessionGraph::removeAgent(
 
     //
     // remove the items from the graph
-    //
     _scene->removeItem( agent->ui.node );
     _scene->removeItem( agent->ui.node->itemEdge() );
     _scene->removeItem( agent->ui.node->itemInfo() );
 
     //
     // remove itself from the parent node
-    //
-    agent->ui.node->parent()->removePivot( agent->ui.node );
+    if ( agent->ui.node->parent() ) {
+        agent->ui.node->parent()->removePivot( agent->ui.node );
+    }
 
     //
     // remove the node from the lists
-    //
     for ( int i = 0; i < _nodes.size(); i++ ) {
         if ( _nodes[ i ] == agent->ui.node ) {
             _nodes.erase( _nodes.begin() + i );
@@ -116,8 +132,13 @@ auto HcSessionGraph::removeAgent(
     }
 
     //
-    // re-draw the tree layout
+    // remove pivots connections
+    for ( const auto pivot : agent->ui.node->pivots() ) {
+        _scene->removeItem( pivot->itemEdge() );
+    }
+
     //
+    // re-draw the tree layout
     HcGraphLayoutTree::draw( server );
 }
 
@@ -129,7 +150,7 @@ auto HcSessionGraph::isServer(
 
 auto HcSessionGraph::itemMoved() -> void
 {
-    if ( ! timer_id ) {
+    if ( !timer_id ) {
         timer_id = startTimer( 40 );
     }
 }
@@ -139,7 +160,7 @@ auto HcSessionGraph::nodes() -> std::vector<HcSessionGraphItem*>
     return _nodes;
 }
 
-auto HcSessionGraph::settings() -> HcSessionGraphSetting *
+auto HcSessionGraph::settings() -> HcSessionGraphSetting*
 {
     return _settings;
 }
@@ -909,10 +930,9 @@ auto HcSessionGraphEdge::setStatus(
 
 auto HcSessionGraphEdge::startPulsation() -> void
 {
-    if ( ! _source->graph()->settings()->pulsation() ) {
+    if ( !_source->graph()->settings()->pulsation() ) {
         //
         // if pulsation has been disabled then we won't be displaying it
-        //
         return;
     }
 

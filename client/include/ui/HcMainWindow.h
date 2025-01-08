@@ -29,6 +29,8 @@ class HcMainWindow final : public QMainWindow
 {
     Q_OBJECT
 
+    std::mutex agent_mutex;
+
 public:
     QWidget*            MainWidget      = nullptr;
     QGridLayout*        gridLayout      = nullptr;

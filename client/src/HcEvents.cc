@@ -402,7 +402,9 @@ auto HcApplication::eventDispatch(
             //
             // update the pulsation inside the graph
             //
-            agent->ui.node->itemEdge()->startPulsation();
+            if ( agent->ui.node->itemEdge() ) {
+                agent->ui.node->itemEdge()->startPulsation();
+            }
         } else {
             spdlog::error( "invalid agent heartbeat: \"uuid\" agent not found" );
         }

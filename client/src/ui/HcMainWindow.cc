@@ -290,8 +290,11 @@ auto HcMainWindow::AddAgent(
 ) -> std::optional<HcAgent*> {
     const auto agent = new HcAgent( metadata );
 
+    agent_mutex.lock();
+
     if ( !agent->initialize() ) {
         spdlog::debug( "[HcPageAgent::addAgent] failed to initialize agent" );
+        agent_mutex.unlock();
         return std::nullopt;
     }
 
@@ -299,8 +302,9 @@ auto HcMainWindow::AddAgent(
 
     //
     // post-processing of the agent
-    //
     agent->post();
+
+    agent_mutex.unlock();
 
     return agent;
 }

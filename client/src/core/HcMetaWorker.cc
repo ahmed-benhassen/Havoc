@@ -118,7 +118,7 @@ auto HcMetaWorker::agents(
     // and pull console logs as well
     //
     for ( auto& agent : agents ) {
-        if ( ! agent.is_object() ) {
+        if ( !agent.is_object() ) {
             spdlog::debug( "warning! agent processing item is not an object" );
             continue;
         }

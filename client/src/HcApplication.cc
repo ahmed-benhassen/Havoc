@@ -120,7 +120,7 @@ auto HcApplication::Main(
 
     message.setStyleSheet( StyleSheet() );
 
-    if ( ! found ) {
+    if ( !found ) {
         if ( ! ssl_hash.value().empty() ) {
             message.setWindowTitle( "Verify SSL Fingerprint" );
             message.setText( std::format(
@@ -149,7 +149,6 @@ auto HcApplication::Main(
         // if we have found an entry then lets compare
         // the ssl hash to the profile to verify that
         // it's still the same as previously
-        //
         if ( conn_entry.contains( "ssl-hash" ) ) {
             if ( toml::find<std::string>( conn_entry, "ssl-hash" ) != ssl_hash.value() ) {
                 message.setIcon( QMessageBox::Critical );
@@ -167,7 +166,6 @@ auto HcApplication::Main(
         } else {
             //
             // the profile connection seems incorrect or invalid... abort
-            //
             message.setIcon( QMessageBox::Critical );
             message.setWindowTitle( "SSL Fingerprint" );
             message.setText(
