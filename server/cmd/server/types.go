@@ -37,7 +37,15 @@ type Listener struct {
 	Path     string `json:"path"`
 }
 
-type AgentCommand func(uuid string, context any, data []byte) (bool, error)
+const (
+	AgentCommandProcess = iota
+	AgentCommandPivotPoke
+)
+
+type AgentCommand struct {
+	Type    int
+	Command func(uuid string, context any, data []byte) (bool, error)
+}
 
 type Agent struct {
 	uuid string

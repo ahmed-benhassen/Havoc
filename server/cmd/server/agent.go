@@ -316,7 +316,7 @@ func (t *Teamserver) AgentProcessRequest(implant string, ctx map[string]any, req
 //
 // Useful if the need arises to register a callback command to be processed
 // such as SMB pivots, file downloading, long-running tasks, etc.
-func (t *Teamserver) AgentRegisterCommand(implant string, command func(string, any, []byte) (bool, error)) {
+func (t *Teamserver) AgentRegisterCommand(implant string, register int, command func(string, any, []byte) (bool, error)) {
 	var (
 		val  any
 		list []AgentCommand
@@ -330,7 +330,10 @@ func (t *Teamserver) AgentRegisterCommand(implant string, command func(string, a
 	}
 
 	// store the command to implant type list
-	t.commands.Store(implant, append(list, command))
+	t.commands.Store(implant, append(list, AgentCommand{
+		Type:    register,
+		Command: command,
+	}))
 }
 
 // AgentCommand
@@ -357,9 +360,59 @@ func (t *Teamserver) AgentCommand(uuid string, context any, data []byte) error {
 		list = val.([]AgentCommand)
 
 		for _, command := range list {
+			if command.Type != AgentCommandProcess {
+				continue
+			}
+
 			// process given data to the command and check if
 			// the command says it's valid for its use case
-			valid, err = command(uuid, context, data)
+			valid, err = command.Command(uuid, context, data)
+			if !valid {
+				continue
+			}
+
+			return err
+		}
+	}
+
+	// no command registered for this implant
+	// type and command request drop it
+	return nil
+}
+
+// AgentPivotPoke
+// will be used for any available pivots once the team server
+// restarted and the agents have been recovered from the database.
+//
+// it allows to send a ping command to the pivot from the parent session.
+func (t *Teamserver) AgentPivotPoke(uuid string, context any, data []byte) error {
+	var (
+		valid   bool
+		err     error
+		val     any
+		ok      bool
+		list    []AgentCommand
+		implant string
+	)
+
+	// get the type of the agent uuid
+	if implant, err = t.AgentType(uuid); err != nil {
+		return err
+	}
+
+	// get list of commands for specific implant type in
+	// case some have been registered previously already
+	if val, ok = t.commands.Load(implant); ok {
+		list = val.([]AgentCommand)
+
+		for _, command := range list {
+			if command.Type != AgentCommandPivotPoke {
+				continue
+			}
+
+			// process given data to the command and check if
+			// the command says it's valid for its use case
+			valid, err = command.Command(uuid, context, data)
 			if !valid {
 				continue
 			}
