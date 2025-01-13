@@ -384,6 +384,10 @@ auto HcMainWindow::closeEvent(
 ) -> void {
     auto question = QMessageBox( this );
 
+    //
+    // TODO: check when ever we have any kind of callbacks
+    //       registered and display them in the message text
+
     question.setIcon( QMessageBox::Question );
     question.setWindowTitle( "Close Confirmation" );
     question.setText( "Are you sure you want to exit?" );

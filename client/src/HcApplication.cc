@@ -645,7 +645,16 @@ auto HcApplication::RequestSend(
 }
 
 auto HcApplication::eventClosed() -> void {
-    spdlog::error( "websocket closed" );
+    auto question = QMessageBox( this );
+
+    question.setIcon( QMessageBox::Warning );
+    question.setWindowTitle( "Server Closed" );
+    question.setText( "Client has been disconnected from the server" );
+    question.setStandardButtons( QMessageBox::Ok );
+    question.setStyleSheet( HcApplication::StyleSheet() );
+
+    question.exec();
+
     Exit();
 }
 
