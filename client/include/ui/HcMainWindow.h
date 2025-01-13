@@ -89,6 +89,10 @@ public Q_SLOT:
         const json& console
     ) -> void;
 
+    auto closeEvent(
+        QCloseEvent* event
+    ) -> void;
+
 signals:
     auto signalBuildLog(
         const QString& text

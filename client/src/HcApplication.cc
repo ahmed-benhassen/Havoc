@@ -659,7 +659,7 @@ auto HcApplication::eventHandle(
 
     /* check if we managed to parse the json event
      * if yes then dispatch it but if not then dismiss it */
-    if ( ! event.is_discarded() ) {
+    if ( !event.is_discarded() ) {
         eventDispatch( event );
     } else {
         spdlog::error( "failed to parse event" );

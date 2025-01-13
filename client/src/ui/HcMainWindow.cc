@@ -379,6 +379,26 @@ auto HcMainWindow::AgentConsole(
     PageAgent->AgentConsole( uuid, format, output );
 }
 
+auto HcMainWindow::closeEvent(
+    QCloseEvent* event
+) -> void {
+    auto question = QMessageBox( this );
+
+    question.setIcon( QMessageBox::Question );
+    question.setWindowTitle( "Close Confirmation" );
+    question.setText( "Are you sure you want to exit?" );
+    question.setStandardButtons( QMessageBox::Yes | QMessageBox::No );
+    question.setDefaultButton( QMessageBox::Yes );
+    question.setStyleSheet( HcApplication::StyleSheet() );
+
+    if ( question.exec() == QMessageBox::Yes ) {
+        HcApplication::Exit();
+        return;
+    }
+
+    event->ignore();
+}
+
 HavocButton::HavocButton(
     QWidget *w
 ) : QPushButton( w ) {

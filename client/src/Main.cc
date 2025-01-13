@@ -13,4 +13,3 @@ auto main(
 
     QApplication::exec();
 }
-
