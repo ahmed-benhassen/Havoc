@@ -585,13 +585,11 @@ auto HcApplication::RequestSend(
     //
     // we are going to adjust the ssl configuration
     // to disable certification verification
-    //
     ssl_config.setPeerVerifyMode( QSslSocket::VerifyNone );
     request.setSslConfiguration( ssl_config );
 
     //
     // send request to the endpoint url via specified method
-    //
     if ( method == "POST" ) {
         reply = _network.post( request, QByteArray::fromStdString( data ) );
     } else if ( method == "GET" ) {
@@ -604,22 +602,19 @@ auto HcApplication::RequestSend(
     //
     // we are going to wait for the request to finish, during the
     // waiting time we are going to continue executing the event loop
-    //
     connect( reply, &QNetworkReply::finished, &event, &QEventLoop::quit );
     event.exec();
 
     //
     // parse the request data such as
     // error, response, and status code
-    //
     error       = reply->error();
-    error_str   = std::string( reply->errorString().toStdString().c_str() );
+    error_str   = std::move( reply->errorString().toStdString() );
     response    = reply->readAll().toStdString();
     status_code = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute ).toInt();
 
     //
     // get the SSL certificate SHA-256 hash
-    //
     if ( error == QNetworkReply::NoError ) {
         if ( ! ( ssl_chain = reply->sslConfiguration().peerCertificateChain() ).isEmpty() ) {
             ssl_hash = ssl_chain.first().digest( QCryptographicHash::Sha256 ).toHex().toStdString();
@@ -632,11 +627,9 @@ auto HcApplication::RequestSend(
 
     //
     // now handle and retrieve the response from the request
-    //
     if ( error != QNetworkReply::NoError ) {
         //
         // TODO: perhaps raise an exception...
-        //
         spdlog::error( "[RequestSend] invalid network reply: {}", response );
         return {};
     }
