@@ -142,16 +142,17 @@ HcPyEngine::HcPyEngine() {
     guard = new py11::scoped_interpreter;
 
     try {
-        auto _ = py11::module_::import( "sys" )
+        auto path = std::filesystem::current_path().string() + "/python";
+        auto _    = py11::module_::import( "sys" )
             .attr( "path" )
-            .attr( "append" )( "python" ); // TODO: perhaps get the real path and append it this way.
+            .attr( "append" )( path );
 
         py11::module_::import( "pyhavoc" );
     } catch ( py11::error_already_set &eas ) {
         exception = std::string( eas.what() );
     }
 
-    if ( ! exception.empty() ) {
+    if ( !exception.empty() ) {
         spdlog::error( "failed to import \"python.pyhavoc\": \n{}", exception );
     }
 
