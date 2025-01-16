@@ -382,7 +382,7 @@ auto HcMainWindow::AgentConsole(
 auto HcMainWindow::closeEvent(
     QCloseEvent* event
 ) -> void {
-    auto question = QMessageBox( this );
+    auto question = QMessageBox();
 
     //
     // TODO: check when ever we have any kind of callbacks

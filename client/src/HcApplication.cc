@@ -638,7 +638,7 @@ auto HcApplication::RequestSend(
 }
 
 auto HcApplication::eventClosed() -> void {
-    auto question = QMessageBox( this );
+    auto question = QMessageBox();
 
     question.setIcon( QMessageBox::Warning );
     question.setWindowTitle( "Server Closed" );

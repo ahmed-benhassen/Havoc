@@ -129,25 +129,20 @@ auto HcPluginManager::loadPlugin(
 ) -> void {
     auto loader = QPluginLoader( QString::fromStdString( path ) );
 
-    if ( !loader.errorString().isEmpty() ) {
+    if ( !loader.load() ) {
         throw std::runtime_error( loader.errorString().toStdString() );
     }
 
     auto plugin = qobject_cast<IHcPlugin*>( loader.instance() );
+    if ( !plugin ) {
+        throw std::runtime_error( loader.errorString().toStdString() );
+    }
 
     spdlog::debug( "loader.instance(): {} ({}) factory: {}",
         fmt::ptr( loader.instance() ),
         loader.instance()->metaObject()->className(),
         fmt::ptr( plugin )
     );
-
-    if ( !plugin ) {
-        spdlog::error(
-            "HcPluginManager::loadPlugin failed to load plugin {}: {}",
-            path, loader.errorString().toStdString()
-        );
-        return;
-    }
 
     spdlog::debug(
         "HcPluginManager::loadPlugin loaded {} @ {}",
