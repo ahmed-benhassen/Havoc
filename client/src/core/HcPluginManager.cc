@@ -128,6 +128,11 @@ auto HcPluginManager::loadPlugin(
     const std::string& path
 ) -> void {
     auto loader = QPluginLoader( QString::fromStdString( path ) );
+
+    if ( !loader.errorString().isEmpty() ) {
+        throw std::runtime_error( loader.errorString().toStdString() );
+    }
+
     auto plugin = qobject_cast<IHcPlugin*>( loader.instance() );
 
     spdlog::debug( "loader.instance(): {} ({}) factory: {}",
